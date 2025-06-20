@@ -104,7 +104,7 @@ Each agent has specialized capabilities and distinct personalities:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/projectMaestro.git
+git clone https://github.com/jamandtea/projectMaestro.git
 cd projectMaestro
 
 # Install dependencies

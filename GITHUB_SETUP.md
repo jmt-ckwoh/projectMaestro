@@ -22,8 +22,8 @@ gh repo create projectMaestro --private --description "A communication-centric c
 ### 2. Add Remote and Push
 
 ```bash
-# Replace YOUR_USERNAME with your GitHub username
-git remote add origin https://github.com/YOUR_USERNAME/projectMaestro.git
+# For jamandtea organization
+git remote add origin https://github.com/jamandtea/projectMaestro.git
 git push -u origin main
 ```
 
