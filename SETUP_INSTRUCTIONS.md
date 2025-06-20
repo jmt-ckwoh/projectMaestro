@@ -50,14 +50,33 @@ git push -u origin main
 Add to your shell profile (.bashrc, .zshrc, etc.):
 
 ```bash
-export GITHUB_TOKEN="your_updated_token_here"
+export GITHUB_TOKEN="your_github_token_here"
 ```
 
 Or create a `.env` file in the project root:
 
 ```bash
-echo "GITHUB_TOKEN=your_updated_token_here" > .env
+echo "GITHUB_TOKEN=your_github_token_here" > .env
 ```
+
+## Step 4b: Setup GitHub MCP Server (Enhanced Integration)
+
+For advanced GitHub operations, set up the official GitHub MCP server:
+
+```bash
+# Run the automated setup script
+npm run setup:github-mcp
+
+# Or manually install Docker and pull the image
+docker pull ghcr.io/github/github-mcp-server:latest
+```
+
+This provides enhanced capabilities:
+- ✅ **Advanced PR Management** - Create, review, and merge PRs
+- ✅ **Issue Automation** - Auto-create and link issues
+- ✅ **Code Search** - Search across repository code
+- ✅ **GitHub Actions** - Trigger and monitor workflows
+- ✅ **Security Analysis** - Code security insights
 
 ## Step 5: Test the Workflow System
 

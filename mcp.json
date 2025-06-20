@@ -24,16 +24,15 @@
       ]
     },
     "github": {
-      // The 'github' server allows the AI to interact with GitHub repositories.
-      // It can create issues, pull requests, and manage repository content.
-      "command": "npx",
+      // Official GitHub MCP Server with full GitHub API integration
+      // Note: Requires Docker. Alternative configs provided in GITHUB_MCP_SETUP.md
+      "command": "docker",
       "args": [
-        "-y", 
-        "@modelcontextprotocol/server-github"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
+        "run", "-i", "--rm",
+        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_TOKEN}",
+        "--toolsets", "context,issues,pull_requests,repository,search,actions",
+        "ghcr.io/github/github-mcp-server"
+      ]
     }
   }
 }

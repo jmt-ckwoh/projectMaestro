@@ -37,6 +37,7 @@
     "git:pr": "node scripts/github-workflow.cjs pr",
     "git:daily": "node scripts/github-workflow.cjs daily",
     "git:status": "node scripts/github-workflow.cjs status",
+    "setup:github-mcp": "bash scripts/setup-github-mcp.sh",
     "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
