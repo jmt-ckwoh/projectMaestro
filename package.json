@@ -27,6 +27,16 @@
     "generate:service": "node scripts/generate-service.js",
     "validate:architecture": "node scripts/validate-architecture.js",
     "prepare": "husky install",
+    "git:commit": "node scripts/github-workflow.cjs commit",
+    "git:progress": "node scripts/github-workflow.cjs progress",
+    "git:feature": "node scripts/github-workflow.cjs feature",
+    "git:complete": "node scripts/github-workflow.cjs complete",
+    "git:fix": "node scripts/github-workflow.cjs fix",
+    "git:docs": "node scripts/github-workflow.cjs docs",
+    "git:push": "node scripts/github-workflow.cjs push",
+    "git:pr": "node scripts/github-workflow.cjs pr",
+    "git:daily": "node scripts/github-workflow.cjs daily",
+    "git:status": "node scripts/github-workflow.cjs status",
     "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
