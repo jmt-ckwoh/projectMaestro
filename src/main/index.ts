@@ -6,8 +6,13 @@
  */
 
 import { BrowserWindow, app, ipcMain } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { isDev } from './utils'
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // =============================================================================
 // Global State
