@@ -22,6 +22,18 @@
         "--repository",
         "./.git"
       ]
+    },
+    "github": {
+      // The 'github' server allows the AI to interact with GitHub repositories.
+      // It can create issues, pull requests, and manage repository content.
+      "command": "npx",
+      "args": [
+        "-y", 
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
     }
   }
 }
