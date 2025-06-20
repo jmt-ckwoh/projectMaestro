@@ -1,0 +1,27 @@
+{
+  // This file configures the Model Context Protocol (MCP) servers for this project.
+  // It allows the AI assistant to interact with external tools like the filesystem and Git. 
+  "mcpServers": {
+    "filesystem": {
+      // The 'filesystem' server gives the AI read/write access to the project directory.
+      // The command uses 'npx' to run the server package from the npm registry.
+      // The argument "." scopes the server's access to the current project root directory for security.
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
+      ]
+    },
+    "git": {
+      // The 'git' server allows the AI to perform Git operations.
+      // It uses 'uvx' to run the Python-based git server package from PyPI.
+      "command": "uvx",
+      "args": [
+        "mcp-server-git",
+        "--repository",
+        "./.git"
+      ]
+    }
+  }
+}

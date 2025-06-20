@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "types": ["electron"]
+  },
+  "include": [
+    "src/preload/**/*"
+  ]
+}
