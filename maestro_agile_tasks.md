@@ -1,6 +1,6 @@
 # Project Maestro - Agile Task Breakdown
 *Epic → Story → Task → Subtask Hierarchy*
-*Updated: December 2024*
+*Updated: June 2025*
 
 ## 🎯 **Product Vision**
 **Target User**: Solo developer with strong management/communication skills but no technical background  
@@ -153,8 +153,163 @@
 
 ---
 
-# 🤖 **EPIC 2: Agent Management System**
-**Priority**: HIGH | **Sprint Target**: 2-3 | **Story Points**: 29
+# 📊 **EPIC 2: Visual Workspace - Hierarchical Tree View** ✅ **COMPLETED**
+**Priority**: MEDIUM-HIGH | **Sprint Target**: 2 | **Story Points**: 26 | **Status**: ✅ **COMPLETED June 2025**
+
+## Epic Description
+**As a project manager**, I need to see my project broken down into familiar Epic → Story → Task structure so that I can manage development work using project management practices I already know.
+
+**Epic Acceptance Criteria**: ✅ **ALL COMPLETED**
+- ✅ Clear hierarchical display of project work breakdown
+- ✅ Easy navigation through expand/collapse functionality
+- ✅ Task creation, editing, and organization capabilities
+- ✅ Progress tracking at all levels of hierarchy
+- ✅ Agent assignment and chat integration capabilities
+
+**🏆 Epic 2 Complete Achievement**:
+Epic 2 successfully delivers a complete Visual Workspace with professional project management capabilities, enabling non-technical users to manage AI-driven development projects using familiar tree-based hierarchical structures integrated with real-time agent coordination and chat communication.
+
+### **Story 2.1: Tree Structure Display and Navigation** ✅ **COMPLETED**
+**Story Points**: 8 | **Priority**: HIGHEST | **Status**: ✅ **COMPLETED June 2025**
+
+**As a project manager**, I want to see my project organized as a tree of Epics, Stories, and Tasks so that I can understand the work breakdown and project structure at a glance.
+
+**Acceptance Criteria**: ✅ **ALL COMPLETED**
+- ✅ Visual tree structure with proper indentation and hierarchy indicators
+- ✅ Expand/collapse functionality for each level of hierarchy
+- ✅ Clear visual distinction between Epics, Stories, and Tasks
+- ✅ Smooth navigation and responsive interaction
+
+**Key Achievements**:
+- ✅ Complete hierarchical data model (Epic → Story → Task → Subtask)
+- ✅ TreeView component with recursive expansion/collapse
+- ✅ Visual hierarchy indicators (icons, indentation, status badges)
+- ✅ Task type differentiation with emoji icons and color coding
+- ✅ Priority indicators and status management
+- ✅ Integrated with WorkspacePanel as default 'tree' view
+- ✅ TypeScript type safety with proper interfaces
+
+#### **Task 2.1.1: Tree Component Architecture**
+**Story Points**: 5
+- **Subtask 2.1.1a**: Design tree view component with recursive structure
+- **Subtask 2.1.1b**: Implement expand/collapse state management
+- **Subtask 2.1.1c**: Create visual hierarchy indicators (indentation, icons, connecting lines)
+- **Subtask 2.1.1d**: Add keyboard navigation support (arrow keys, enter, etc.)
+
+#### **Task 2.1.2: Tree Data Integration**
+**Story Points**: 3
+- **Subtask 2.1.2a**: Connect tree component to project data store
+- **Subtask 2.1.2b**: Implement real-time tree updates when data changes
+- **Subtask 2.1.2c**: Add tree state persistence (expanded/collapsed states)
+- **Subtask 2.1.2d**: Optimize tree rendering for large project hierarchies
+
+### **Story 2.2: Task Creation and Editing** ✅ **COMPLETED**
+**Story Points**: 8 | **Priority**: HIGH | **Status**: ✅ **COMPLETED June 2025**
+
+**As a project manager**, I want to create and edit Epics, Stories, and Tasks directly in the tree view so that I can build and maintain my project structure efficiently.
+
+**Acceptance Criteria**: ✅ **MOSTLY COMPLETED**
+- ✅ Right-click context menu for creating new items at appropriate levels
+- ✅ Comprehensive creation forms with validation for each task type
+- ✅ Proper validation of hierarchy rules (Stories under Epics, Tasks under Stories)
+- 🔄 Inline editing of task names and descriptions (deferred to Story 2.3)
+- 🔄 Drag-and-drop reordering within hierarchy levels (deferred to future story)
+
+**Key Achievements**:
+- ✅ Complete context menu system with right-click and + button triggers
+- ✅ Task creation forms for Epic, Story, Task, and Subtask with type-specific fields
+- ✅ Hierarchy validation preventing invalid parent-child relationships
+- ✅ Modal-based creation workflow with comprehensive form validation
+- ✅ Business value and acceptance criteria fields for Epics and Stories
+- ✅ User story format guidance and story point estimation
+- ✅ Keyboard accessibility and error handling
+
+#### **Task 2.2.1: Task Creation Interface**
+**Story Points**: 5
+- **Subtask 2.2.1a**: Implement context menu for creating Epics, Stories, Tasks
+- **Subtask 2.2.1b**: Create new item forms with appropriate fields for each type
+- **Subtask 2.2.1c**: Add hierarchy validation (prevent invalid parent-child relationships)
+- **Subtask 2.2.1d**: Implement new item placement in tree structure
+
+#### **Task 2.2.2: Task Editing and Management**
+**Story Points**: 3
+- **Subtask 2.2.2a**: Implement inline editing for task names and descriptions
+- **Subtask 2.2.2b**: Create detailed edit modals for complex task properties
+- **Subtask 2.2.2c**: Add drag-and-drop reordering within hierarchy levels
+- **Subtask 2.2.2d**: Implement task deletion with proper confirmation and cleanup
+
+### **Story 2.3: Progress Tracking and Status Management** ✅ **COMPLETED**
+**Story Points**: 5 | **Priority**: HIGH | **Status**: ✅ **COMPLETED June 2025**
+
+**As a project manager**, I want to see progress indicators for all levels of my project hierarchy so that I can track completion and identify bottlenecks quickly.
+
+**Acceptance Criteria**: ✅ **ALL COMPLETED**
+- ✅ Visual progress indicators for Epics, Stories, and Tasks
+- ✅ Status options (Not Started, In Progress, Review, Complete, Blocked)
+- ✅ Automatic rollup of progress from child to parent items
+- ✅ Color-coded status indicators for quick visual scanning
+- ✅ Status change tracking and validation
+
+**Key Achievements**:
+- ✅ Complete status management component system (StatusBadge, StatusDropdown, PriorityBadge, ProgressBar)
+- ✅ Real-time progress calculation with automatic rollup
+- ✅ Interactive status changes with dropdown selection in tree nodes
+- ✅ Status change tracking system with audit trail and validation
+- ✅ Professional PM-style status workflows and visual indicators
+- ✅ Integration with existing TreeView and task creation components
+
+#### **Task 2.3.1: Status and Progress Components**
+**Story Points**: 3
+- **Subtask 2.3.1a**: Create status selection components (dropdown, badges)
+- **Subtask 2.3.1b**: Implement progress bar components for hierarchy rollup
+- **Subtask 2.3.1c**: Add color-coded status indicators and visual themes
+- **Subtask 2.3.1d**: Create progress calculation logic for parent items
+
+#### **Task 2.3.2: Progress Data Management**
+**Story Points**: 2
+- **Subtask 2.3.2a**: Implement status change tracking and history
+- **Subtask 2.3.2b**: Create automatic progress rollup calculations
+- **Subtask 2.3.2c**: Add progress notification and change detection
+- **Subtask 2.3.2d**: Implement progress reporting and analytics
+
+### **Story 2.4: Tree View Integration with Chat and Agents** ✅ **COMPLETED**
+**Story Points**: 5 | **Priority**: MEDIUM | **Status**: ✅ **COMPLETED June 2025**
+
+**As a project manager**, I want my tree view to integrate with chat and agent work so that tasks can be assigned to agents and progress updates flow between panels.
+
+**Acceptance Criteria**: ✅ **ALL COMPLETED**
+- ✅ Tasks can be assigned to specific agents from tree view
+- ✅ Agent work updates reflect in task status automatically
+- ✅ Right-click options to discuss tasks in chat
+- ✅ Visual indicators showing which tasks agents are working on
+
+**Key Achievements**:
+- ✅ Complete agent assignment system with dropdowns and visual badges
+- ✅ Real-time agent status integration with availability indicators
+- ✅ "Discuss in Chat" functionality with automatic panel switching
+- ✅ Smart agent suggestions based on task type and description
+- ✅ Agent workload visualization and management
+- ✅ Automatic chat notifications for task assignments and status changes
+- ✅ Context menu integration for agent and chat actions
+
+#### **Task 2.4.1: Agent Integration**
+**Story Points**: 3
+- **Subtask 2.4.1a**: Add agent assignment controls to task context menus
+- **Subtask 2.4.1b**: Create visual indicators for agent-assigned tasks
+- **Subtask 2.4.1c**: Implement task-to-agent communication bridges
+- **Subtask 2.4.1d**: Add agent workload indicators in tree view
+
+#### **Task 2.4.2: Chat Integration**
+**Story Points**: 2
+- **Subtask 2.4.2a**: Add "Discuss in Chat" options to task context menus
+- **Subtask 2.4.2b**: Create automatic chat messages for task assignments
+- **Subtask 2.4.2c**: Link task updates to chat notifications
+- **Subtask 2.4.2d**: Implement task reference and linking in chat messages
+
+---
+
+# 🤖 **EPIC 3: Agent Management System**
+**Priority**: HIGH | **Sprint Target**: 3-4 | **Story Points**: 29
 
 ## Epic Description
 **As a project manager**, I need to see agent status and manage their work like a development team so that I can effectively coordinate tasks and monitor progress across my AI team.
@@ -165,7 +320,7 @@
 - Individual agent drill-down views for detailed work inspection
 - Basic workflow orchestration capabilities
 
-### **Story 2.1: Real-Time Agent Status Display**
+### **Story 3.1: Real-Time Agent Status Display**
 **Story Points**: 8 | **Priority**: HIGHEST
 
 **As a project manager**, I want to see what each agent is currently doing so that I can understand team workload and coordinate tasks effectively.
@@ -176,20 +331,20 @@
 - Status updates in real-time as agents work
 - Clear indication of which tasks agents are assigned to
 
-#### **Task 2.1.1: Agent Status Panel Component**
+#### **Task 3.1.1: Agent Status Panel Component**
 **Story Points**: 5
-- **Subtask 2.1.1a**: Design agent status panel layout and visual design
-- **Subtask 2.1.1b**: Create individual agent status cards with real-time updates
-- **Subtask 2.1.1c**: Implement status indicators (available, busy, thinking, error states)
-- **Subtask 2.1.1d**: Add agent workload and current task display
+- **Subtask 3.1.1a**: Design agent status panel layout and visual design
+- **Subtask 3.1.1b**: Create individual agent status cards with real-time updates
+- **Subtask 3.1.1c**: Implement status indicators (available, busy, thinking, error states)
+- **Subtask 3.1.1d**: Add agent workload and current task display
 
-#### **Task 2.1.2: Agent Status State Management**
+#### **Task 3.1.2: Agent Status State Management**
 **Story Points**: 3
-- **Subtask 2.1.2a**: Create agent status store with real-time state updates
-- **Subtask 2.1.2b**: Implement status change events and notifications
-- **Subtask 2.1.2c**: Add agent activity logging and history tracking
+- **Subtask 3.1.2a**: Create agent status store with real-time state updates
+- **Subtask 3.1.2b**: Implement status change events and notifications
+- **Subtask 3.1.2c**: Add agent activity logging and history tracking
 
-### **Story 2.2: Agent Configuration and Customization**
+### **Story 3.2: Agent Configuration and Customization**
 **Story Points**: 8 | **Priority**: HIGH
 
 **As a power user**, I want to customize agent personalities and behavior so that I can optimize my AI team for my specific working style and project needs.
@@ -200,20 +355,20 @@
 - Agent behavior preferences (autonomy level, question frequency)
 - Configuration changes take effect immediately
 
-#### **Task 2.2.1: Agent Configuration Interface**
+#### **Task 3.2.1: Agent Configuration Interface**
 **Story Points**: 5
-- **Subtask 2.2.1a**: Design agent configuration modal/panel interface
-- **Subtask 2.2.1b**: Create personality settings controls (sliders, toggles, dropdowns)
-- **Subtask 2.2.1c**: Implement system prompt editing with syntax highlighting
-- **Subtask 2.2.1d**: Add configuration validation and error handling
+- **Subtask 3.2.1a**: Design agent configuration modal/panel interface
+- **Subtask 3.2.1b**: Create personality settings controls (sliders, toggles, dropdowns)
+- **Subtask 3.2.1c**: Implement system prompt editing with syntax highlighting
+- **Subtask 3.2.1d**: Add configuration validation and error handling
 
-#### **Task 2.2.2: Agent Configuration Persistence**
+#### **Task 3.2.2: Agent Configuration Persistence**
 **Story Points**: 3
-- **Subtask 2.2.2a**: Create agent configuration data schema and storage
-- **Subtask 2.2.2b**: Implement configuration save/load functionality
-- **Subtask 2.2.2c**: Add configuration export/import for sharing setups
+- **Subtask 3.2.2a**: Create agent configuration data schema and storage
+- **Subtask 3.2.2b**: Implement configuration save/load functionality
+- **Subtask 3.2.2c**: Add configuration export/import for sharing setups
 
-### **Story 2.3: Individual Agent Drill-Down Views**
+### **Story 3.3: Individual Agent Drill-Down Views**
 **Story Points**: 8 | **Priority**: HIGH
 
 **As a project manager**, I want to see detailed information about what each agent is thinking and working on so that I can understand their full reasoning and monitor progress in detail.
@@ -224,20 +379,20 @@
 - Detailed view updates in real-time as agent works
 - Easy navigation between agent detail views
 
-#### **Task 2.3.1: Agent Detail Modal/Panel**
+#### **Task 3.3.1: Agent Detail Modal/Panel**
 **Story Points**: 5
-- **Subtask 2.3.1a**: Design agent detail view layout and navigation
-- **Subtask 2.3.1b**: Create detailed agent work display (thinking, planning, execution)
-- **Subtask 2.3.1c**: Implement real-time agent work updates in detail view
-- **Subtask 2.3.1d**: Add agent history and previous work sessions
+- **Subtask 3.3.1a**: Design agent detail view layout and navigation
+- **Subtask 3.3.1b**: Create detailed agent work display (thinking, planning, execution)
+- **Subtask 3.3.1c**: Implement real-time agent work updates in detail view
+- **Subtask 3.3.1d**: Add agent history and previous work sessions
 
-#### **Task 2.3.2: Agent Work Stream Integration**
+#### **Task 3.3.2: Agent Work Stream Integration**
 **Story Points**: 3
-- **Subtask 2.3.2a**: Connect agent detail view to actual agent work streams
-- **Subtask 2.3.2b**: Implement work progress tracking and display
-- **Subtask 2.3.2c**: Add agent work output and deliverable display
+- **Subtask 3.3.2a**: Connect agent detail view to actual agent work streams
+- **Subtask 3.3.2b**: Implement work progress tracking and display
+- **Subtask 3.3.2c**: Add agent work output and deliverable display
 
-### **Story 2.4: Basic Workflow Orchestration**
+### **Story 3.4: Basic Workflow Orchestration**
 **Story Points**: 5 | **Priority**: MEDIUM
 
 **As a project manager**, I want to coordinate agent handoffs and task assignments so that work flows smoothly between team members.
@@ -248,22 +403,22 @@
 - Visual workflow status tracking
 - Simple dependency management between agent tasks
 
-#### **Task 2.4.1: Task Assignment Interface**
+#### **Task 3.4.1: Task Assignment Interface**
 **Story Points**: 3
-- **Subtask 2.4.1a**: Create task assignment controls in agent panel
-- **Subtask 2.4.1b**: Implement drag-and-drop task assignment to agents
-- **Subtask 2.4.1c**: Add task assignment validation and conflict resolution
+- **Subtask 3.4.1a**: Create task assignment controls in agent panel
+- **Subtask 3.4.1b**: Implement drag-and-drop task assignment to agents
+- **Subtask 3.4.1c**: Add task assignment validation and conflict resolution
 
-#### **Task 2.4.2: Agent Coordination System**
+#### **Task 3.4.2: Agent Coordination System**
 **Story Points**: 2
-- **Subtask 2.4.2a**: Implement basic agent handoff notifications
-- **Subtask 2.4.2b**: Create simple dependency tracking between agent tasks
-- **Subtask 2.4.2c**: Add workflow status indicators and progress tracking
+- **Subtask 3.4.2a**: Implement basic agent handoff notifications
+- **Subtask 3.4.2b**: Create simple dependency tracking between agent tasks
+- **Subtask 3.4.2c**: Add workflow status indicators and progress tracking
 
 ---
 
-# 💾 **EPIC 3: Project Infrastructure**
-**Priority**: HIGH | **Sprint Target**: 3 | **Story Points**: 21
+# 💾 **EPIC 4: Project Infrastructure**
+**Priority**: HIGH | **Sprint Target**: 4-5 | **Story Points**: 21
 
 ## Epic Description
 **As a user**, I need to save my projects and resume work across sessions so that I can work on complex applications over time without losing progress or context.
@@ -274,7 +429,7 @@
 - Project data includes chat history, agent states, and task progress
 - Fast loading and saving of project state
 
-### **Story 3.1: Project Creation and Management**
+### **Story 4.1: Project Creation and Management**
 **Story Points**: 8 | **Priority**: HIGHEST
 
 **As a user**, I want to create new projects and manage existing ones so that I can organize my application development work effectively.
@@ -285,10 +440,19 @@
 - Project settings and metadata management
 - Project templates for common application types
 
-#### **Task 3.1.1: Project Creation Workflow**
+#### **Task 4.1.1: Project Creation Workflow**
 **Story Points**: 5
-- **Subtask 3.1.1a**: Design new project creation modal with required fields
-- **Subtask 3.1.1b**: Create project initialization with default structure
+- **Subtask 4.1.1a**: Design new project creation modal with required fields
+- **Subtask 4.1.1b**: Create project initialization with default structure
+- **Subtask 4.1.1c**: Implement project template selection (web app, mobile app, etc.)
+- **Subtask 4.1.1d**: Add project directory and file structure creation
+
+#### **Task 4.1.2: Project List and Management**
+**Story Points**: 3
+- **Subtask 4.1.2a**: Create project list interface with search and filtering
+- **Subtask 4.1.2b**: Implement recent projects quick access
+- **Subtask 4.1.2c**: Add project settings and metadata editing
+- **Subtask 4.1.2d**: Implement project deletion with confirmation
 - **Subtask 3.1.1c**: Implement project template selection (web app, mobile app, etc.)
 - **Subtask 3.1.1d**: Add project directory and file structure creation
 
@@ -349,160 +513,55 @@
 - **Subtask 3.3.2c**: Add data validation and business rule enforcement
 - **Subtask 3.3.2d**: Implement data migration utilities
 
----
+### **Story 4.2: Session Persistence and Restoration**
+**Story Points**: 8 | **Priority**: HIGHEST
 
-# 📊 **EPIC 4: Visual Workspace - Hierarchical Tree View** ✅ **COMPLETED**
-**Priority**: MEDIUM-HIGH | **Sprint Target**: 4 | **Story Points**: 26 | **Status**: ✅ **COMPLETED June 2025**
+**As a user**, I want my work sessions to be saved automatically so that I can resume exactly where I left off without losing any context or progress.
 
-## Epic Description
-**As a project manager**, I need to see my project broken down into familiar Epic → Story → Task structure so that I can manage development work using project management practices I already know.
+**Acceptance Criteria**:
+- Automatic saving of all session data (chat, agent states, task progress)
+- Fast restoration of complete project state when opening project
+- No data loss between sessions
+- Session restore includes UI state (panel positions, selected views)
 
-**Epic Acceptance Criteria**: ✅ **ALL COMPLETED**
-- ✅ Clear hierarchical display of project work breakdown
-- ✅ Easy navigation through expand/collapse functionality
-- ✅ Task creation, editing, and organization capabilities
-- ✅ Progress tracking at all levels of hierarchy
-- ✅ Agent assignment and chat integration capabilities
-
-**🏆 Epic 4 Complete Achievement**:
-Epic 4 successfully delivers a complete Visual Workspace with professional project management capabilities, enabling non-technical users to manage AI-driven development projects using familiar tree-based hierarchical structures integrated with real-time agent coordination and chat communication.
-
-### **Story 4.1: Tree Structure Display and Navigation** ✅ **COMPLETED**
-**Story Points**: 8 | **Priority**: HIGHEST | **Status**: ✅ **COMPLETED June 2025**
-
-**As a project manager**, I want to see my project organized as a tree of Epics, Stories, and Tasks so that I can understand the work breakdown and project structure at a glance.
-
-**Acceptance Criteria**: ✅ **ALL COMPLETED**
-- ✅ Visual tree structure with proper indentation and hierarchy indicators
-- ✅ Expand/collapse functionality for each level of hierarchy
-- ✅ Clear visual distinction between Epics, Stories, and Tasks
-- ✅ Smooth navigation and responsive interaction
-
-**Key Achievements**:
-- ✅ Complete hierarchical data model (Epic → Story → Task → Subtask)
-- ✅ TreeView component with recursive expansion/collapse
-- ✅ Visual hierarchy indicators (icons, indentation, status badges)
-- ✅ Task type differentiation with emoji icons and color coding
-- ✅ Priority indicators and status management
-- ✅ Integrated with WorkspacePanel as default 'tree' view
-- ✅ TypeScript type safety with proper interfaces
-
-#### **Task 4.1.1: Tree Component Architecture**
+#### **Task 4.2.1: Session Data Persistence**
 **Story Points**: 5
-- **Subtask 4.1.1a**: Design tree view component with recursive structure
-- **Subtask 4.1.1b**: Implement expand/collapse state management
-- **Subtask 4.1.1c**: Create visual hierarchy indicators (indentation, icons, connecting lines)
-- **Subtask 4.1.1d**: Add keyboard navigation support (arrow keys, enter, etc.)
+- **Subtask 4.2.1a**: Design comprehensive session data schema
+- **Subtask 4.2.1b**: Implement automatic session save triggers
+- **Subtask 4.2.1c**: Create incremental save system for performance
+- **Subtask 4.2.1d**: Add session data validation and error recovery
 
-#### **Task 4.1.2: Tree Data Integration**
+#### **Task 4.2.2: Session Restoration System**
 **Story Points**: 3
-- **Subtask 4.1.2a**: Connect tree component to project data store
-- **Subtask 4.1.2b**: Implement real-time tree updates when data changes
-- **Subtask 4.1.2c**: Add tree state persistence (expanded/collapsed states)
-- **Subtask 4.1.2d**: Optimize tree rendering for large project hierarchies
+- **Subtask 4.2.2a**: Implement fast session loading with progress indicators
+- **Subtask 4.2.2b**: Restore complete application state (UI, data, agent states)
+- **Subtask 4.2.2c**: Add session restore error handling and fallbacks
+- **Subtask 4.2.2d**: Implement session migration for schema changes
 
-### **Story 4.2: Task Creation and Editing** ✅ **COMPLETED**
-**Story Points**: 8 | **Priority**: HIGH | **Status**: ✅ **COMPLETED June 2025**
+### **Story 4.3: Core Data Models and Relationships**
+**Story Points**: 5 | **Priority**: HIGH
 
-**As a project manager**, I want to create and edit Epics, Stories, and Tasks directly in the tree view so that I can build and maintain my project structure efficiently.
+**As a developer**, I want well-defined data models for projects, tasks, and conversations so that the application has a solid foundation for all features.
 
-**Acceptance Criteria**: ✅ **MOSTLY COMPLETED**
-- ✅ Right-click context menu for creating new items at appropriate levels
-- ✅ Comprehensive creation forms with validation for each task type
-- ✅ Proper validation of hierarchy rules (Stories under Epics, Tasks under Stories)
-- 🔄 Inline editing of task names and descriptions (deferred to Story 4.3)
-- 🔄 Drag-and-drop reordering within hierarchy levels (deferred to future story)
+**Acceptance Criteria**:
+- Clean separation between project, task, conversation, and agent data
+- Proper relationships and referential integrity
+- Efficient data access patterns for UI components
+- Extensible schema for future feature additions
 
-**Key Achievements**:
-- ✅ Complete context menu system with right-click and + button triggers
-- ✅ Task creation forms for Epic, Story, Task, and Subtask with type-specific fields
-- ✅ Hierarchy validation preventing invalid parent-child relationships
-- ✅ Modal-based creation workflow with comprehensive form validation
-- ✅ Business value and acceptance criteria fields for Epics and Stories
-- ✅ User story format guidance and story point estimation
-- ✅ Keyboard accessibility and error handling
-
-#### **Task 4.2.1: Task Creation Interface**
-**Story Points**: 5
-- **Subtask 4.2.1a**: Implement context menu for creating Epics, Stories, Tasks
-- **Subtask 4.2.1b**: Create new item forms with appropriate fields for each type
-- **Subtask 4.2.1c**: Add hierarchy validation (prevent invalid parent-child relationships)
-- **Subtask 4.2.1d**: Implement new item placement in tree structure
-
-#### **Task 4.2.2: Task Editing and Management**
+#### **Task 4.3.1: Data Schema Design**
 **Story Points**: 3
-- **Subtask 4.2.2a**: Implement inline editing for task names and descriptions
-- **Subtask 4.2.2b**: Create detailed edit modals for complex task properties
-- **Subtask 4.2.2c**: Add drag-and-drop reordering within hierarchy levels
-- **Subtask 4.2.2d**: Implement task deletion with proper confirmation and cleanup
+- **Subtask 4.3.1a**: Define project data model with required fields and relationships
+- **Subtask 4.3.1b**: Create task hierarchy model (Epic → Story → Task → Subtask)
+- **Subtask 4.3.1c**: Design conversation and message data structures
+- **Subtask 4.3.1d**: Define agent state and configuration models
 
-### **Story 4.3: Progress Tracking and Status Management** ✅ **COMPLETED**
-**Story Points**: 5 | **Priority**: HIGH | **Status**: ✅ **COMPLETED June 2025**
-
-**As a project manager**, I want to see progress indicators for all levels of my project hierarchy so that I can track completion and identify bottlenecks quickly.
-
-**Acceptance Criteria**: ✅ **ALL COMPLETED**
-- ✅ Visual progress indicators for Epics, Stories, and Tasks
-- ✅ Status options (Not Started, In Progress, Review, Complete, Blocked)
-- ✅ Automatic rollup of progress from child to parent items
-- ✅ Color-coded status indicators for quick visual scanning
-- ✅ Status change tracking and validation
-
-**Key Achievements**:
-- ✅ Complete status management component system (StatusBadge, StatusDropdown, PriorityBadge, ProgressBar)
-- ✅ Real-time progress calculation with automatic rollup
-- ✅ Interactive status changes with dropdown selection in tree nodes
-- ✅ Status change tracking system with audit trail and validation
-- ✅ Professional PM-style status workflows and visual indicators
-- ✅ Integration with existing TreeView and task creation components
-
-#### **Task 4.3.1: Status and Progress Components**
-**Story Points**: 3
-- **Subtask 4.3.1a**: Create status selection components (dropdown, badges)
-- **Subtask 4.3.1b**: Implement progress bar components for hierarchy rollup
-- **Subtask 4.3.1c**: Add color-coded status indicators and visual themes
-- **Subtask 4.3.1d**: Create progress calculation logic for parent items
-
-#### **Task 4.3.2: Progress Data Management**
+#### **Task 4.3.2: Data Access Layer**
 **Story Points**: 2
-- **Subtask 4.3.2a**: Implement status change tracking and history
-- **Subtask 4.3.2b**: Create automatic progress rollup calculations
-- **Subtask 4.3.2c**: Add progress notification and change detection
-- **Subtask 4.3.2d**: Implement progress reporting and analytics
-
-### **Story 4.4: Tree View Integration with Chat and Agents** ✅ **COMPLETED**
-**Story Points**: 5 | **Priority**: MEDIUM | **Status**: ✅ **COMPLETED June 2025**
-
-**As a project manager**, I want my tree view to integrate with chat and agent work so that tasks can be assigned to agents and progress updates flow between panels.
-
-**Acceptance Criteria**: ✅ **ALL COMPLETED**
-- ✅ Tasks can be assigned to specific agents from tree view
-- ✅ Agent work updates reflect in task status automatically
-- ✅ Right-click options to discuss tasks in chat
-- ✅ Visual indicators showing which tasks agents are working on
-
-**Key Achievements**:
-- ✅ Complete agent assignment system with dropdowns and visual badges
-- ✅ Real-time agent status integration with availability indicators
-- ✅ "Discuss in Chat" functionality with automatic panel switching
-- ✅ Smart agent suggestions based on task type and description
-- ✅ Agent workload visualization and management
-- ✅ Automatic chat notifications for task assignments and status changes
-- ✅ Context menu integration for agent and chat actions
-
-#### **Task 4.4.1: Agent Integration**
-**Story Points**: 3
-- **Subtask 4.4.1a**: Add agent assignment controls to task context menus
-- **Subtask 4.4.1b**: Create visual indicators for agent-assigned tasks
-- **Subtask 4.4.1c**: Implement task-to-agent communication bridges
-- **Subtask 4.4.1d**: Add agent workload indicators in tree view
-
-#### **Task 4.4.2: Chat Integration**
-**Story Points**: 2
-- **Subtask 4.4.2a**: Add "Discuss in Chat" options to task context menus
-- **Subtask 4.4.2b**: Create automatic chat messages for task assignments
-- **Subtask 4.4.2c**: Link task updates to chat notifications
-- **Subtask 4.4.2d**: Implement task reference and linking in chat messages
+- **Subtask 4.3.2a**: Implement data repository patterns for each entity type
+- **Subtask 4.3.2b**: Create efficient query methods for UI components
+- **Subtask 4.3.2c**: Add data validation and business rule enforcement
+- **Subtask 4.3.2d**: Implement data migration utilities
 
 ---
 
@@ -664,25 +723,27 @@ Epic 4 successfully delivers a complete Visual Workspace with professional proje
 
 ## 📊 **Sprint Planning Summary**
 
-### **Sprint 1-2: Core Chat Interface (Epic 1)**
+### **Sprint 1-2: Core Chat Interface (Epic 1)** ✅ **COMPLETED**
 - **Goal**: Enable basic team chat communication with AI agents
 - **Deliverables**: Working chat interface, agent personalities, message persistence
 - **Success Criteria**: User can chat with Producer agent and see contextual responses
+- **Achievement**: ✅ Complete multi-agent chat with @mention system and persistence
 
-### **Sprint 2-3: Agent Management System (Epic 2)**
+### **Sprint 2: Visual Workspace - Tree View (Epic 2)** ✅ **COMPLETED**
+- **Goal**: Provide familiar project management visualization  
+- **Deliverables**: Hierarchical tree view, task creation, progress tracking, agent integration
+- **Success Criteria**: User can manage project using familiar PM tools with agent coordination
+- **Achievement**: ✅ Professional PM interface with complete agent assignment and chat integration
+
+### **Sprint 3-4: Agent Management System (Epic 3)**
 - **Goal**: Provide team management capabilities for AI agents
 - **Deliverables**: Agent status panel, configuration, drill-down views
 - **Success Criteria**: User can see agent status and manage team like real developers
 
-### **Sprint 3: Project Infrastructure (Epic 3)**
+### **Sprint 4-5: Project Infrastructure (Epic 4)**
 - **Goal**: Enable project persistence and session management
 - **Deliverables**: Project creation, session save/restore, data models
 - **Success Criteria**: User can create projects and resume work across sessions
-
-### **Sprint 4: Visual Workspace Foundation (Epic 4)**
-- **Goal**: Provide familiar project management visualization
-- **Deliverables**: Hierarchical tree view, task management, progress tracking
-- **Success Criteria**: User can manage project using familiar PM tools
 
 ### **Sprint 5-6: Advanced Visualization (Epic 5)**
 - **Goal**: Kanban board workflow management
