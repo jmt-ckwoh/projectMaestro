@@ -16,7 +16,7 @@ import { subscribeWithSelector } from 'zustand/middleware'
 export interface LayoutState {
   chatPanelWidth: number
   teamPanelWidth: number
-  workspaceView: 'board' | 'architecture' | 'files' | 'chat-focus'
+  workspaceView: 'tree' | 'board' | 'architecture' | 'files' | 'chat-focus'
 }
 
 export interface PanelCollapseState {
@@ -97,7 +97,7 @@ export interface UIActions {
 const DEFAULT_LAYOUT: LayoutState = {
   chatPanelWidth: 320,
   teamPanelWidth: 280,
-  workspaceView: 'board'
+  workspaceView: 'tree'
 }
 
 const DEFAULT_PREFERENCES: UIPreferences = {

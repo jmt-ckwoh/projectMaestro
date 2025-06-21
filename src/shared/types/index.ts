@@ -1,1 +1,3 @@
-// Shared TypeScript types 
+// Shared TypeScript types
+export * from './agents'
+export * from './tasks' 

@@ -5,7 +5,7 @@
  * sets up IPC handlers, and initializes backend services.
  */
 
-import { BrowserWindow, app, ipcMain } from 'electron'
+import { BrowserWindow, app } from 'electron'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { isDev } from './utils'

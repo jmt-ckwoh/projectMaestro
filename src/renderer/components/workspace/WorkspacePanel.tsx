@@ -9,6 +9,8 @@ import React from 'react'
 import { useUIStore } from '@/renderer/stores/uiStore'
 import { useProjectStore } from '@/renderer/stores/projectStore'
 import { cn } from '@/renderer/utils/cn'
+import { TreeView } from './TreeView'
+import type { HierarchyItem } from '@/shared/types/tasks'
 
 // =============================================================================
 // Workspace Panel Component
@@ -32,6 +34,8 @@ export const WorkspacePanel: React.FC = () => {
 
   const renderContent = () => {
     switch (layout.workspaceView) {
+      case 'tree':
+        return <TreeViewTab />
       case 'board':
         return <ProjectBoardView />
       case 'architecture':
@@ -41,7 +45,7 @@ export const WorkspacePanel: React.FC = () => {
       case 'chat-focus':
         return <ChatFocusView />
       default:
-        return <ProjectBoardView />
+        return <TreeViewTab />
     }
   }
 
@@ -73,7 +77,8 @@ export const WorkspacePanel: React.FC = () => {
         {/* View Tabs */}
         <div className="flex items-center gap-1">
           {[
-            { id: 'board', label: 'Project Board', icon: '📋' },
+            { id: 'tree', label: 'Tree View', icon: '🌳' },
+            { id: 'board', label: 'Kanban Board', icon: '📋' },
             { id: 'architecture', label: 'Architecture', icon: '🏗️' },
             { id: 'files', label: 'Files', icon: '📁' },
             { id: 'chat-focus', label: 'Chat Focus', icon: '💬' }
@@ -243,6 +248,80 @@ const FilesView: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// =============================================================================
+// Tree View Tab
+// =============================================================================
+
+const TreeViewTab: React.FC = () => {
+  // Mock data for demonstration - will be replaced with real data
+  const mockTasks: HierarchyItem[] = [
+    {
+      id: '1',
+      title: 'User Authentication System',
+      description: 'Complete user login and registration functionality',
+      type: 'epic',
+      status: 'in-progress',
+      priority: 'high',
+      storyPoints: 21,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      projectId: 'project-1',
+      stories: [],
+      businessValue: 'Enable secure user access and personalization',
+      acceptanceCriteria: [
+        'Users can register with email and password',
+        'Users can login securely', 
+        'Password reset functionality works',
+        'User sessions are managed properly'
+      ]
+    },
+    {
+      id: '2', 
+      title: 'Project Dashboard Interface',
+      description: 'Main dashboard for project management',
+      type: 'epic',
+      status: 'not-started',
+      priority: 'medium',
+      storyPoints: 13,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      projectId: 'project-1',
+      stories: [],
+      businessValue: 'Provide centralized project visibility and control',
+      acceptanceCriteria: [
+        'Dashboard shows project overview',
+        'Real-time status updates',
+        'Quick action buttons available',
+        'Performance metrics displayed'
+      ]
+    }
+  ]
+
+  const handleItemSelect = (item: HierarchyItem) => {
+    console.log('Selected item:', item)
+  }
+
+  const handleItemUpdate = (item: HierarchyItem) => {
+    console.log('Update item:', item)
+  }
+
+  const handleCreateChild = (parentItem: HierarchyItem) => {
+    console.log('Create child for:', parentItem)
+  }
+
+  return (
+    <div className="h-full">
+      <TreeView
+        items={mockTasks}
+        onItemSelect={handleItemSelect}
+        onItemUpdate={handleItemUpdate}
+        onCreateChild={handleCreateChild}
+        className="h-full"
+      />
     </div>
   )
 }
