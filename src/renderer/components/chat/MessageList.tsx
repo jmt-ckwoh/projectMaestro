@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/renderer/utils/cn'
-import { ChatMessage, TypingIndicator as TypingIndicatorType, useChatStore, useIsLoadingHistory, useHasMoreHistory, useTotalMessageCount } from '@/renderer/stores/chatStore'
+import { ChatMessage, TypingIndicator as TypingIndicatorType, useChatStore, useHasMoreHistory, useIsLoadingHistory, useTotalMessageCount } from '@/renderer/stores/chatStore'
 import { AgentType } from '@/shared/contracts/AgentDomain'
 import { AgentAvatar, TypingIndicator } from './AgentAvatar'
 

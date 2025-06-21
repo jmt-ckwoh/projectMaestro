@@ -8,12 +8,12 @@
 import React, { useCallback, useState } from 'react'
 import { Modal, ModalBody, ModalFooter } from '@/renderer/components/common/Modal'
 import type { 
-  TaskType, 
-  TaskPriority, 
-  CreateEpicInput,
+  CreateEpicInput, 
   CreateStoryInput, 
-  CreateTaskInput,
-  CreateSubtaskInput
+  CreateSubtaskInput,
+  CreateTaskInput, 
+  TaskPriority,
+  TaskType
 } from '@/shared/types/tasks'
 
 // =============================================================================

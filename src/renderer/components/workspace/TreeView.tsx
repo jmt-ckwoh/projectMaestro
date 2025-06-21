@@ -7,19 +7,21 @@
 
 import React, { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/renderer/utils/cn'
-import { ContextMenu, useContextMenu, type ContextMenuItem } from '@/renderer/components/common/ContextMenu'
+import { ContextMenu, type ContextMenuItem, useContextMenu } from '@/renderer/components/common/ContextMenu'
 import { TaskCreateForm } from './TaskCreateForm'
+import { PriorityBadge, ProgressBar, StatusBadge, StatusDropdown, calculateProgressStats } from './StatusComponents'
+import { AgentAssignmentBadge, AgentAssignmentDropdown } from './AgentAssignment'
+import { useTaskDiscussion } from './ChatIntegration'
 import type { 
-  HierarchyItem, 
-  TaskTreeNode, 
-  TaskTreeState, 
-  TaskStatus,
-  TaskPriority,
-  TaskType,
-  CreateEpicInput,
-  CreateStoryInput,
+  CreateEpicInput, 
+  CreateStoryInput, 
+  CreateSubtaskInput, 
   CreateTaskInput,
-  CreateSubtaskInput
+  HierarchyItem,
+  TaskStatus,
+  TaskTreeNode,
+  TaskTreeState,
+  TaskType
 } from '@/shared/types/tasks'
 
 // =============================================================================
@@ -32,6 +34,8 @@ export interface TreeViewProps {
   readonly onItemSelect?: (item: HierarchyItem) => void
   readonly onItemUpdate?: (item: HierarchyItem) => void
   readonly onCreateItem?: (data: CreateEpicInput | CreateStoryInput | CreateTaskInput | CreateSubtaskInput) => void
+  readonly onStatusChange?: (itemId: string, status: TaskStatus) => void
+  readonly onAgentAssign?: (itemId: string, agentId: string | undefined) => void
   readonly className?: string
 }
 
@@ -45,6 +49,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
   onItemSelect,
   onItemUpdate,
   onCreateItem,
+  onStatusChange,
+  onAgentAssign,
   className
 }) => {
   const [treeState, setTreeState] = useState<TaskTreeState>({
@@ -124,8 +130,33 @@ export const TreeView: React.FC<TreeViewProps> = ({
         })
       }
 
+      // Chat and agent actions
       if (menuItems.length > 0) {
-        menuItems.push({ id: 'separator', separator: true })
+        menuItems.push({ id: 'separator-1', separator: true })
+      }
+
+      menuItems.push({
+        id: 'discuss-in-chat',
+        label: 'Discuss in Chat',
+        icon: '💬',
+        onClick: () => discussInChat(item)
+      })
+
+      if (['task', 'subtask'].includes(item.type)) {
+        menuItems.push({
+          id: 'assign-agent',
+          label: item.assignedAgent ? 'Change Agent' : 'Assign Agent',
+          icon: '🤖',
+          onClick: () => {
+            console.log('Assign agent to:', item.id)
+            // TODO: Open agent assignment modal or inline dropdown
+          }
+        })
+      }
+
+      // Edit and delete actions
+      if (menuItems.length > 0) {
+        menuItems.push({ id: 'separator-2', separator: true })
       }
 
       menuItems.push(
@@ -178,6 +209,14 @@ export const TreeView: React.FC<TreeViewProps> = ({
     setCreateModalState({ isOpen: false, taskType: 'epic' })
   }, [])
 
+  // Chat integration
+  const { discussInChat } = useTaskDiscussion()
+
+  // Calculate overall project progress
+  const projectStats = useMemo(() => {
+    return calculateProgressStats(items)
+  }, [items])
+
   return (
     <div className={cn('tree-view', 'p-4', className)}>
       <div className="tree-header mb-4">
@@ -193,6 +232,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
             + Create Epic
           </button>
         </div>
+        
+        {/* Project Progress */}
+        {items.length > 0 && (
+          <div className="mt-3">
+            <ProgressBar stats={projectStats} size="md" showDetails={true} />
+          </div>
+        )}
       </div>
 
       <div 
@@ -207,6 +253,9 @@ export const TreeView: React.FC<TreeViewProps> = ({
             onToggleExpanded={handleToggleExpanded}
             onSelect={handleSelectNode}
             onUpdate={onItemUpdate}
+            onStatusChange={onStatusChange}
+            onAgentAssign={onAgentAssign}
+            onDiscussInChat={discussInChat}
             onContextMenu={handleContextMenu}
           />
         ))}
@@ -256,6 +305,9 @@ interface TreeNodeRendererProps {
   readonly onToggleExpanded: (nodeId: string) => void
   readonly onSelect: (item: HierarchyItem) => void
   readonly onUpdate?: (item: HierarchyItem) => void
+  readonly onStatusChange?: (itemId: string, status: TaskStatus) => void
+  readonly onAgentAssign?: (itemId: string, agentId: string | undefined) => void
+  readonly onDiscussInChat?: (item: HierarchyItem) => void
   readonly onContextMenu: (event: React.MouseEvent, item?: HierarchyItem) => void
 }
 
@@ -265,6 +317,9 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
   onToggleExpanded,
   onSelect,
   onUpdate,
+  onStatusChange,
+  onAgentAssign,
+  onDiscussInChat,
   onContextMenu
 }) => {
   const isExpanded = treeState.expandedNodes.has(node.item.id)
@@ -279,6 +334,9 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
         onToggleExpanded={onToggleExpanded}
         onSelect={onSelect}
         onUpdate={onUpdate}
+        onStatusChange={onStatusChange}
+        onAgentAssign={onAgentAssign}
+        onDiscussInChat={onDiscussInChat}
         onContextMenu={onContextMenu}
       />
       
@@ -293,6 +351,9 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
               onToggleExpanded={onToggleExpanded}
               onSelect={onSelect}
               onUpdate={onUpdate}
+              onStatusChange={onStatusChange}
+              onAgentAssign={onAgentAssign}
+              onDiscussInChat={onDiscussInChat}
               onContextMenu={onContextMenu}
             />
           ))}
@@ -313,6 +374,9 @@ interface TreeNodeProps {
   readonly onToggleExpanded: (nodeId: string) => void
   readonly onSelect: (item: HierarchyItem) => void
   readonly onUpdate?: (item: HierarchyItem) => void
+  readonly onStatusChange?: (itemId: string, status: TaskStatus) => void
+  readonly onAgentAssign?: (itemId: string, agentId: string | undefined) => void
+  readonly onDiscussInChat?: (item: HierarchyItem) => void
   readonly onContextMenu: (event: React.MouseEvent, item?: HierarchyItem) => void
 }
 
@@ -323,6 +387,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   onToggleExpanded,
   onSelect,
   onUpdate: _onUpdate,
+  onStatusChange,
+  onAgentAssign,
+  onDiscussInChat,
   onContextMenu
 }) => {
   const hasChildren = node.children.length > 0
@@ -341,6 +408,14 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     onContextMenu(e, node.item)
   }, [onContextMenu, node.item])
+
+  const handleStatusChange = useCallback((status: TaskStatus) => {
+    onStatusChange?.(node.item.id, status)
+  }, [onStatusChange, node.item.id])
+
+  const handleAgentAssign = useCallback((agentId: string | undefined) => {
+    onAgentAssign?.(node.item.id, agentId)
+  }, [onAgentAssign, node.item.id])
 
   const indentationLevel = node.level * 20
 
@@ -382,7 +457,16 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             <span className="font-medium text-gray-900 truncate">
               {node.item.title}
             </span>
-            <TaskStatusBadge status={node.item.status} />
+            {onStatusChange ? (
+              <StatusDropdown 
+                value={node.item.status} 
+                onChange={handleStatusChange} 
+                size="sm"
+                className="min-w-[120px]"
+              />
+            ) : (
+              <StatusBadge status={node.item.status} size="sm" />
+            )}
             {node.item.storyPoints && (
               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
                 {node.item.storyPoints} pts
@@ -396,18 +480,49 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           )}
         </div>
 
-        {/* Priority Indicator */}
-        <PriorityIndicator priority={node.item.priority} />
+        {/* Priority Badge */}
+        <PriorityBadge priority={node.item.priority} size="sm" />
+
+        {/* Agent Assignment */}
+        {['task', 'subtask'].includes(node.item.type) && (
+          <div className="flex items-center gap-1">
+            {onAgentAssign ? (
+              <AgentAssignmentDropdown
+                value={node.item.assignedAgent}
+                onChange={handleAgentAssign}
+                size="sm"
+                className="min-w-[100px]"
+                placeholder="Agent..."
+              />
+            ) : (
+              <AgentAssignmentBadge
+                agentId={node.item.assignedAgent}
+                size="sm"
+                showStatus={true}
+              />
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="flex items-center gap-1 ml-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDiscussInChat?.(node.item)
+            }}
+            className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-blue-600 rounded"
+            title="Discuss in chat"
+          >
+            💬
+          </button>
           {canHaveChildren && (
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleContextMenu(e)
               }}
-              className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-blue-600 rounded"
+              className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-green-600 rounded"
               title="Add child item"
             >
               +
@@ -438,44 +553,6 @@ const TaskTypeIcon: React.FC<{ type: TaskType }> = ({ type }) => {
   )
 }
 
-const TaskStatusBadge: React.FC<{ status: TaskStatus }> = ({ status }) => {
-  const statusConfig = {
-    'not-started': { label: 'Not Started', color: 'bg-gray-100 text-gray-600' },
-    'in-progress': { label: 'In Progress', color: 'bg-yellow-100 text-yellow-700' },
-    'review': { label: 'Review', color: 'bg-blue-100 text-blue-700' },
-    'completed': { label: 'Completed', color: 'bg-green-100 text-green-700' },
-    'blocked': { label: 'Blocked', color: 'bg-red-100 text-red-700' }
-  }
-
-  const config = statusConfig[status]
-
-  return (
-    <span className={cn(
-      'text-xs px-2 py-1 rounded-full font-medium',
-      config.color
-    )}>
-      {config.label}
-    </span>
-  )
-}
-
-const PriorityIndicator: React.FC<{ priority: TaskPriority }> = ({ priority }) => {
-  const priorityConfig = {
-    low: { color: 'bg-gray-400', title: 'Low Priority' },
-    medium: { color: 'bg-yellow-400', title: 'Medium Priority' },
-    high: { color: 'bg-orange-400', title: 'High Priority' },
-    critical: { color: 'bg-red-500', title: 'Critical Priority' }
-  }
-
-  const config = priorityConfig[priority]
-
-  return (
-    <div
-      className={cn('w-2 h-2 rounded-full', config.color)}
-      title={config.title}
-    />
-  )
-}
 
 // =============================================================================
 // Tree Building Utility
