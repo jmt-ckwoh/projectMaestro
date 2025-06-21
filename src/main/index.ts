@@ -6,9 +6,12 @@
  */
 
 import { BrowserWindow, app, ipcMain } from 'electron'
-import { join, dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { isDev } from './utils'
+import { MemoryIPCHandlers } from './services/memory/MemoryIPCHandlers'
+import { createAgentOrchestrator } from './services/agents/AgentOrchestrator'
+import { EventBus } from './services/core/EventBus'
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url)
@@ -19,6 +22,9 @@ const __dirname = dirname(__filename)
 // =============================================================================
 
 let mainWindow: BrowserWindow | null = null
+let memoryIPCHandlers: MemoryIPCHandlers | null = null
+let agentOrchestrator: any | null = null
+let eventBus: EventBus | null = null
 
 // =============================================================================
 // Window Management
@@ -92,8 +98,10 @@ app.whenReady().then(() => {
 })
 
 // Quit when all windows are closed (except on macOS)
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
+    // Cleanup services before quitting
+    await cleanupServices()
     app.quit()
   }
 })
@@ -113,14 +121,27 @@ const initializeServices = async (): Promise<void> => {
   try {
     console.log('Initializing backend services...')
     
-    // TODO: Initialize domain services
-    // - Agent service
-    // - Project service
-    // - Memory service
-    // - Git service
+    // Initialize Event Bus
+    console.log('Initializing Event Bus...')
+    eventBus = EventBus.getInstance()
+    console.log('Event Bus initialized successfully')
     
-    // TODO: Set up IPC handlers
-    // registerIPCHandlers()
+    // Initialize Memory System
+    console.log('Initializing Memory System...')
+    memoryIPCHandlers = new MemoryIPCHandlers()
+    await memoryIPCHandlers.initialize()
+    console.log('Memory System initialized successfully')
+    
+    // Initialize Agent System with Memory Integration
+    console.log('Initializing Agent System...')
+    const memoryService = memoryIPCHandlers.getMemoryService()
+    agentOrchestrator = createAgentOrchestrator(eventBus, memoryService)
+    await agentOrchestrator.initialize()
+    console.log('Agent System initialized successfully')
+    
+    // TODO: Initialize other domain services
+    // - Project service
+    // - Git service
     
     // TODO: Start Express API server
     // startAPIServer()
@@ -136,6 +157,36 @@ const initializeServices = async (): Promise<void> => {
         error: error instanceof Error ? error.message : String(error)
       })
     }
+  }
+}
+
+const cleanupServices = async (): Promise<void> => {
+  try {
+    console.log('Cleaning up backend services...')
+    
+    // Cleanup Agent System
+    if (agentOrchestrator) {
+      await agentOrchestrator.shutdown()
+      agentOrchestrator = null
+    }
+    
+    // Cleanup Memory System
+    if (memoryIPCHandlers) {
+      await memoryIPCHandlers.cleanup()
+      memoryIPCHandlers = null
+    }
+    
+    // Cleanup Event Bus
+    if (eventBus) {
+      eventBus.clear()
+      eventBus = null
+    }
+    
+    // TODO: Cleanup other services
+    
+    console.log('Backend services cleanup completed')
+  } catch (error) {
+    console.error('Error during service cleanup:', error)
   }
 }
 

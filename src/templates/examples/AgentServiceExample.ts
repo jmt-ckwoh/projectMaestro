@@ -10,29 +10,34 @@
  */
 
 import { EventEmitter } from 'events'
-import { AgentService as IAgentService } from '@shared/contracts/AgentDomain'
+import { IAgentDomainService } from '@/shared/contracts/AgentDomain'
 import { 
-  Agent, 
-  AgentConfig, 
+  Agent as AgentEntity, 
+  AgentConfiguration, 
   AgentMessage, 
   AgentResponse, 
   AgentStatus,
   AgentType
-} from '@shared/types/agents'
+} from '@/shared/contracts/AgentDomain'
 
 // =============================================================================
 // Types
 // =============================================================================
 
+interface AgentEntityAction {
+  type: string
+  data?: any
+}
+
 export interface AgentServiceConfig {
-  maxAgents: number
+  maxAgentEntitys: number
   defaultTimeout: number
   enableLogging: boolean
   aiProvider: 'bedrock' | 'openai' | 'mock'
 }
 
 export interface AgentServiceEvents {
-  'agent-created': { agent: Agent }
+  'agent-created': { agent: AgentEntity }
   'agent-status-changed': { agentId: string, oldStatus: AgentStatus, newStatus: AgentStatus }
   'message-sent': { agentId: string, message: AgentMessage }
   'response-received': { agentId: string, response: AgentResponse }
@@ -43,9 +48,9 @@ export interface AgentServiceEvents {
 // Service Implementation
 // =============================================================================
 
-export class AgentService extends EventEmitter implements IAgentService {
+export class AgentService extends EventEmitter implements IAgentDomainService {
   private config: AgentServiceConfig
-  private agents = new Map<string, Agent>()
+  private agents = new Map<string, AgentEntity>()
   private statuses = new Map<string, AgentStatus>()
   private messageQueues = new Map<string, AgentMessage[]>()
   private isInitialized = false
@@ -68,7 +73,7 @@ export class AgentService extends EventEmitter implements IAgentService {
       console.log('Initializing AgentService...')
       
       // Initialize default agents
-      await this.createDefaultAgents()
+      await this.createDefaultAgentEntitys()
       
       this.isInitialized = true
       this.emit('initialized', { service: 'AgentService' })
@@ -108,18 +113,18 @@ export class AgentService extends EventEmitter implements IAgentService {
   // Public API Methods
   // =============================================================================
 
-  async createAgent(type: AgentType, config: AgentConfig): Promise<Agent> {
+  async createAgentEntity(type: AgentType, config: AgentEntityConfig): Promise<AgentEntity> {
     try {
       this.validateConfig()
       
-      if (this.agents.size >= this.config.maxAgents) {
-        throw new Error(`Maximum number of agents (${this.config.maxAgents}) reached`)
+      if (this.agents.size >= this.config.maxAgentEntitys) {
+        throw new Error(`Maximum number of agents (${this.config.maxAgentEntitys}) reached`)
       }
 
-      const agent: Agent = {
+      const agent: AgentEntity = {
         id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type,
-        name: this.getAgentName(type),
+        name: this.getAgentEntityName(type),
         status: AgentStatus.IDLE,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -144,17 +149,17 @@ export class AgentService extends EventEmitter implements IAgentService {
       
       return agent
     } catch (error) {
-      this.handleError(error as Error, 'createAgent')
+      this.handleError(error as Error, 'createAgentEntity')
       throw error
     }
   }
 
-  async getAgent(id: string): Promise<Agent | null> {
+  async getAgentEntity(id: string): Promise<AgentEntity | null> {
     try {
       this.validateConfig()
       return this.agents.get(id) || null
     } catch (error) {
-      this.handleError(error as Error, 'getAgent')
+      this.handleError(error as Error, 'getAgentEntity')
       throw error
     }
   }
@@ -165,7 +170,7 @@ export class AgentService extends EventEmitter implements IAgentService {
       
       const agent = this.agents.get(id)
       if (!agent) {
-        throw new Error(`Agent with id ${id} not found`)
+        throw new Error(`AgentEntity with id ${id} not found`)
       }
 
       const oldStatus = this.statuses.get(id) || AgentStatus.IDLE
@@ -182,17 +187,17 @@ export class AgentService extends EventEmitter implements IAgentService {
       this.statuses.set(id, status)
       
       // Update agent record
-      const updatedAgent = {
+      const updatedAgentEntity = {
         ...agent,
         status,
         updatedAt: new Date()
       }
-      this.agents.set(id, updatedAgent)
+      this.agents.set(id, updatedAgentEntity)
       
       this.emit('agent-status-changed', { agentId: id, oldStatus, newStatus: status })
       
       if (this.config.enableLogging) {
-        console.log(`Agent ${agent.name} status changed: ${oldStatus} → ${status}`)
+        console.log(`AgentEntity ${agent.name} status changed: ${oldStatus} → ${status}`)
       }
     } catch (error) {
       this.handleError(error as Error, 'updateAgentStatus')
@@ -206,12 +211,12 @@ export class AgentService extends EventEmitter implements IAgentService {
       
       const agent = this.agents.get(agentId)
       if (!agent) {
-        throw new Error(`Agent with id ${agentId} not found`)
+        throw new Error(`AgentEntity with id ${agentId} not found`)
       }
 
       const currentStatus = this.statuses.get(agentId)
       if (currentStatus === AgentStatus.ERROR) {
-        throw new Error(`Agent ${agent.name} is in error state`)
+        throw new Error(`AgentEntity ${agent.name} is in error state`)
       }
 
       // Add message to queue
@@ -228,12 +233,12 @@ export class AgentService extends EventEmitter implements IAgentService {
       const response = await this.processMessage(agent, message)
 
       // Update statistics
-      const updatedAgent = this.agents.get(agentId)!
-      updatedAgent.statistics.messagesProcessed++
-      updatedAgent.statistics.averageResponseTime = 
-        (updatedAgent.statistics.averageResponseTime + response.processingTime) / 2
-      updatedAgent.updatedAt = new Date()
-      this.agents.set(agentId, updatedAgent)
+      const updatedAgentEntity = this.agents.get(agentId)!
+      updatedAgentEntity.statistics.messagesProcessed++
+      updatedAgentEntity.statistics.averageResponseTime = 
+        (updatedAgentEntity.statistics.averageResponseTime + response.processingTime) / 2
+      updatedAgentEntity.updatedAt = new Date()
+      this.agents.set(agentId, updatedAgentEntity)
 
       // Update status back to idle
       await this.updateAgentStatus(agentId, AgentStatus.IDLE)
@@ -261,7 +266,7 @@ export class AgentService extends EventEmitter implements IAgentService {
       
       const agent = this.agents.get(agentId)
       if (!agent) {
-        throw new Error(`Agent with id ${agentId} not found`)
+        throw new Error(`AgentEntity with id ${agentId} not found`)
       }
 
       // Process any actions in the response
@@ -275,11 +280,11 @@ export class AgentService extends EventEmitter implements IAgentService {
       }
 
       // Update task completion statistics
-      if (response.actions?.some(action => action.type === 'task-completed')) {
-        const updatedAgent = this.agents.get(agentId)!
-        updatedAgent.statistics.tasksCompleted++
-        updatedAgent.updatedAt = new Date()
-        this.agents.set(agentId, updatedAgent)
+      if (response.actions?.some((action: any) => action.type === 'task-completed')) {
+        const updatedAgentEntity = this.agents.get(agentId)!
+        updatedAgentEntity.statistics.tasksCompleted++
+        updatedAgentEntity.updatedAt = new Date()
+        this.agents.set(agentId, updatedAgentEntity)
       }
     } catch (error) {
       this.handleError(error as Error, 'processResponse')
@@ -291,12 +296,12 @@ export class AgentService extends EventEmitter implements IAgentService {
   // Additional Public Methods
   // =============================================================================
 
-  getAllAgents(): Agent[] {
+  getAllAgentEntitys(): AgentEntity[] {
     return Array.from(this.agents.values())
   }
 
-  getAgentsByType(type: AgentType): Agent[] {
-    return this.getAllAgents().filter(agent => agent.type === type)
+  getAgentEntitysByType(type: AgentType): AgentEntity[] {
+    return this.getAllAgentEntitys().filter(agent => agent.type === type)
   }
 
   getAgentStatus(agentId: string): AgentStatus | null {
@@ -319,7 +324,7 @@ export class AgentService extends EventEmitter implements IAgentService {
   // Private Helper Methods
   // =============================================================================
 
-  private async createDefaultAgents(): Promise<void> {
+  private async createDefaultAgentEntitys(): Promise<void> {
     const defaultAgentTypes: AgentType[] = [
       AgentType.PRODUCER,
       AgentType.ARCHITECT, 
@@ -328,7 +333,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     ]
 
     for (const type of defaultAgentTypes) {
-      await this.createAgent(type, {
+      await this.createAgentEntity(type, {
         personality: this.getDefaultPersonality(type),
         capabilities: this.getDefaultCapabilities(type),
         maxConcurrentTasks: 3,
@@ -337,7 +342,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     }
   }
 
-  private getAgentName(type: AgentType): string {
+  private getAgentEntityName(type: AgentType): string {
     const names = {
       [AgentType.PRODUCER]: 'Project Producer',
       [AgentType.ARCHITECT]: 'System Architect', 
@@ -399,7 +404,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     return validTransitions[from]?.includes(to) || false
   }
 
-  private async processMessage(agent: Agent, message: AgentMessage): Promise<AgentResponse> {
+  private async processMessage(agent: AgentEntity, message: AgentMessage): Promise<AgentResponse> {
     const startTime = Date.now()
 
     // Simulate AI processing delay
@@ -422,7 +427,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     return response
   }
 
-  private generateResponseContent(agent: Agent, message: AgentMessage): string {
+  private generateResponseContent(agent: AgentEntity, _message: AgentMessage): string {
     const responses = {
       [AgentType.PRODUCER]: [
         "I'll coordinate with the team to make this happen.",
@@ -450,7 +455,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     return agentResponses[Math.floor(Math.random() * agentResponses.length)]
   }
 
-  private generateActions(agent: Agent, message: AgentMessage): any[] {
+  private generateActions(agent: AgentEntity, message: AgentMessage): any[] {
     // Generate context-appropriate actions
     const actions = []
 
@@ -473,7 +478,7 @@ export class AgentService extends EventEmitter implements IAgentService {
     return actions
   }
 
-  private async processActions(agent: Agent, actions: any[]): Promise<void> {
+  private async processActions(agent: AgentEntity, actions: AgentEntityAction[]): Promise<void> {
     for (const action of actions) {
       try {
         // Process each action
@@ -532,7 +537,7 @@ export function createAgentService(config: AgentServiceConfig): AgentService {
   })
 
   service.on('agent-created', ({ agent }) => {
-    console.log(`Agent created: ${agent.name} (${agent.type})`)
+    console.log(`AgentEntity created: ${agent.name} (${agent.type})`)
   })
   
   return service
@@ -551,7 +556,7 @@ export default AgentService
 /*
 // Initialize the service
 const agentService = createAgentService({
-  maxAgents: 10,
+  maxAgentEntitys: 10,
   defaultTimeout: 30000,
   enableLogging: true,
   aiProvider: 'mock'
@@ -560,7 +565,7 @@ const agentService = createAgentService({
 await agentService.initialize()
 
 // Create a custom agent
-const engineer = await agentService.createAgent(AgentType.ENGINEER, {
+const engineer = await agentService.createAgentEntity(AgentType.ENGINEER, {
   personality: 'Focused on React and TypeScript',
   capabilities: ['react', 'typescript', 'testing'],
   maxConcurrentTasks: 2,
@@ -576,7 +581,7 @@ const response = await agentService.sendMessage(engineer.id, {
   timestamp: new Date()
 })
 
-console.log('Agent response:', response.content)
+console.log('AgentEntity response:', response.content)
 
 // Clean up
 await agentService.cleanup()

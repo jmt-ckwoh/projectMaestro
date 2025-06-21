@@ -351,7 +351,7 @@ export interface DeliveryReceipt {
 // Event Bus Errors
 // =============================================================================
 
-export class EventBusError extends DomainError {
+export abstract class EventBusError extends DomainError {
   readonly domain = 'eventbus'
 }
 

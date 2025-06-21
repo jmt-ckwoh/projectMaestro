@@ -25,7 +25,7 @@ export function register__FEATURE_NAME__Handlers() {
    * Handle __operation_name__
    */
   ipcMain.handle('__operation-name__', async (
-    event: IpcMainInvokeEvent,
+    _event: IpcMainInvokeEvent,
     input: unknown
   ) => {
     try {
@@ -54,7 +54,7 @@ export function register__FEATURE_NAME__Handlers() {
       
       return {
         success: false,
-        error: error.message || 'Unknown error occurred'
+        error: (error as Error).message || 'Unknown error occurred'
       }
     }
   })
@@ -62,13 +62,13 @@ export function register__FEATURE_NAME__Handlers() {
   /**
    * Handle another operation
    */
-  ipcMain.handle('__another-operation__', async (event, input) => {
+  ipcMain.handle('__another-operation__', async (_event, _input) => {
     // Implementation
   })
 }
 
 // Business logic (separate from IPC handling)
-async function perform__Operation__(input: __Operation__Input) {
+async function perform__Operation__(_input: __Operation__Input) {
   // Implement the actual logic here
   // This separation makes it easier to test
   

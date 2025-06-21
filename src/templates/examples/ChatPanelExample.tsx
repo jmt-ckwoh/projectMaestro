@@ -312,7 +312,7 @@ const MessageInput: React.FC<{
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({ 
   className,
-  projectId,
+  projectId: _projectId,
   onSendMessage 
 }) => {
   const { messages, typingAgents, sendMessage } = useChatStore()

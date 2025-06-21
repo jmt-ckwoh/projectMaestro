@@ -313,9 +313,8 @@ export const useProjectStore = create<ProjectStore>()(
               set(state => {
                 state.projects[id] = {
                   ...state.projects[id],
-                  ...updatedProject,
-                  updatedAt: new Date()
-                }
+                  ...updatedProject
+                } as Project
                 state.isLoading = false
               })
 
@@ -392,18 +391,20 @@ export const useProjectStore = create<ProjectStore>()(
             })
           },
 
-          updateProjectSettings: async (id: string, settings: Partial<ProjectSettings>) => {
+          updateProjectSettings: async (id: string, settings: Partial<ProjectSettings>): Promise<void> => {
             try {
-              const updatedProject = await window.api.updateProject(id, { settings })
+              await window.api.updateProject(id, { 
+                settings: { 
+                  ...settings as ProjectSettings 
+                } 
+              })
               
               set(state => {
                 if (state.projects[id]) {
-                  state.projects[id].settings = { ...state.projects[id].settings, ...settings }
+                  state.projects[id].settings = { ...state.projects[id].settings, ...settings } as ProjectSettings
                   state.projects[id].updatedAt = new Date()
                 }
               })
-
-              return updatedProject
             } catch (error) {
               const errorMessage = error instanceof Error ? error.message : 'Failed to update settings'
               

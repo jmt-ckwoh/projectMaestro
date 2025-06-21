@@ -66,6 +66,17 @@ export abstract class DomainError extends Error {
   }
 }
 
+export class GenericDomainError extends DomainError {
+  readonly code: string
+  readonly domain: string
+  
+  constructor(code: string, domain: string, message: string, cause?: Error) {
+    super(message, cause)
+    this.code = code
+    this.domain = domain
+  }
+}
+
 export class EntityNotFoundError extends DomainError {
   readonly code = 'ENTITY_NOT_FOUND'
   readonly domain: string
@@ -80,7 +91,7 @@ export class ValidationError extends DomainError {
   readonly code = 'VALIDATION_ERROR'
   readonly domain: string
   
-  constructor(domain: string, message: string, public readonly errors: z.ZodError, cause?: Error) {
+  constructor(domain: string, message: string, public readonly errors?: z.ZodError | unknown, cause?: Error) {
     super(`${domain} validation failed: ${message}`, cause)
     this.domain = domain
   }
@@ -131,7 +142,7 @@ export const safeDomainOperation = async <T>(
       return Err(error)
     }
     // Wrap unexpected errors
-    return Err(new DomainError('UNEXPECTED_ERROR', 'unexpected', error as Error))
+    return Err(new BusinessRuleViolationError('unexpected', 'UNEXPECTED_ERROR', error as Error))
   }
 }
 

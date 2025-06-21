@@ -47,7 +47,7 @@ const initialState = {
 // Store implementation
 export const use__STORE_NAME__ = create<__STORE_NAME__State>()(
   devtools(
-    immer((set, get) => ({
+    immer((set, _get) => ({
       // State
       ...initialState,
       
@@ -83,14 +83,14 @@ export const use__STORE_NAME__ = create<__STORE_NAME__State>()(
         })
         
         try {
-          const items = await window.api.get__MODEL_NAME__s()
+          const items = await (window.api as any).get__MODEL_NAME__s()
           set((state) => {
             state.items = items
             state.isLoading = false
           })
         } catch (error) {
           set((state) => {
-            state.error = error.message
+            state.error = (error as Error).message
             state.isLoading = false
           })
         }
@@ -103,7 +103,7 @@ export const use__STORE_NAME__ = create<__STORE_NAME__State>()(
         })
         
         try {
-          const savedItem = await window.api.save__MODEL_NAME__(item)
+          const savedItem = await (window.api as any).save__MODEL_NAME__(item)
           set((state) => {
             const index = state.items.findIndex(i => i.id === savedItem.id)
             if (index !== -1) {

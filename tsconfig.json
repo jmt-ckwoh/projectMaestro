@@ -35,6 +35,9 @@
   "exclude": [
     "node_modules",
     "dist",
-    "dist-electron"
+    "dist-electron",
+    "src/templates/**/*",
+    "tests/e2e/**/*",
+    "src/renderer/**/*.test.tsx"
   ]
 }

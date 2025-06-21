@@ -324,17 +324,14 @@ export const useIsTeamInitialized = () => useAgentStore(state => state.isInitial
 // =============================================================================
 
 // Save agent state when it changes
-useAgentStore.subscribe(
-  (state) => ({ agents: state.agents, statuses: state.statuses, statistics: state.statistics }),
-  () => {
-    // Debounce saves
-    const timeoutId = setTimeout(() => {
-      useAgentStore.getState().saveAgentState()
-    }, 1000)
-    
-    return () => clearTimeout(timeoutId)
-  }
-)
+useAgentStore.subscribe(() => {
+  // Debounce saves
+  const timeoutId = setTimeout(() => {
+    useAgentStore.getState().saveAgentState()
+  }, 1000)
+  
+  return () => clearTimeout(timeoutId)
+})
 
 // Load agent state on initialization
 if (typeof window !== 'undefined') {

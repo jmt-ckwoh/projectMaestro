@@ -5,9 +5,7 @@
  */
 
 import { vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
-
-// Vitest doesn't need jest-dom - it has built-in DOM testing capabilities
-// We'll use @testing-library/react for component testing without jest-dom matchers
+import '@testing-library/jest-dom'
 
 // =============================================================================
 // Global Test Environment Setup
@@ -116,7 +114,7 @@ const mockAPI = {
   })),
   getProjects: vi.fn(() => Promise.resolve([])),
   getProject: vi.fn(() => Promise.resolve(null)),
-  updateProject: vi.fn((id: string, updates: any) => Promise.resolve(updates)),
+  updateProject: vi.fn((_id: string, updates: any) => Promise.resolve(updates)),
   deleteProject: vi.fn(() => Promise.resolve()),
   
   // Agent communication
@@ -222,7 +220,7 @@ global.URL.revokeObjectURL = vi.fn()
 // Global Test Utilities
 // =============================================================================
 
-global.createMockProject = () => ({
+;(global as any).createMockProject = () => ({
   id: 'test-project-id',
   name: 'Test Project',
   description: 'A test project',
@@ -247,7 +245,7 @@ global.createMockProject = () => ({
   }
 })
 
-global.createMockAgent = (type: string = 'producer') => ({
+;(global as any).createMockAgent = (type: string = 'producer') => ({
   id: `test-${type}-id`,
   type,
   name: `Test ${type.charAt(0).toUpperCase() + type.slice(1)}`,
@@ -268,7 +266,7 @@ global.createMockAgent = (type: string = 'producer') => ({
   }
 })
 
-global.createMockMessage = () => ({
+;(global as any).createMockMessage = () => ({
   id: 'test-message-id',
   agentType: 'user',
   content: 'Test message content',

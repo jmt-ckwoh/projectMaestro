@@ -7,24 +7,15 @@
 
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import type { 
+  CreateProjectInput, 
+  Project, 
+  ProjectQuery,
+  UpdateProjectInput 
+} from '@/shared/contracts/ProjectDomain'
 
-// =============================================================================
-// Project Types
-// =============================================================================
-
-export interface Project {
-  id: string
-  name: string
-  description: string
-  status: 'active' | 'completed' | 'paused' | 'archived'
-  createdAt: Date
-  updatedAt: Date
-  settings: {
-    techStack: string[]
-    aiModel?: string
-    customPrompts?: Record<string, string>
-  }
-}
+// Re-export types for convenience
+export type { Project, CreateProjectInput, UpdateProjectInput, ProjectQuery }
 
 export interface ProjectState {
   projects: Project[]
@@ -38,8 +29,8 @@ export interface ProjectState {
 
 export interface ProjectActions {
   // Project Management
-  createProject: (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string>
-  updateProject: (id: string, updates: Partial<Project>) => void
+  createProject: (data: CreateProjectInput) => Promise<string>
+  updateProject: (id: string, updates: UpdateProjectInput) => void
   deleteProject: (id: string) => void
   setCurrentProject: (project: Project | null) => void
   
@@ -74,31 +65,17 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
     // =============================================================================
 
     createProject: async (data) => {
-      const projectId = `project-${Date.now()}`
-      
-      const newProject: Project = {
-        ...data,
-        id: projectId,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-
-      set((state) => {
-        state.projects.push(newProject)
-      })
-
       try {
-        await window.api.createProject(newProject)
-        return projectId
+        const newProject = await window.api.createProject(data)
+        
+        set((state) => {
+          state.projects.push(newProject)
+          state.currentProject = newProject
+        })
+        
+        return newProject.id
       } catch (error) {
         console.error('Failed to create project:', error)
-        // Rollback on failure
-        set((state) => {
-          const index = state.projects.findIndex(p => p.id === projectId)
-          if (index > -1) {
-            state.projects.splice(index, 1)
-          }
-        })
         throw error
       }
     },
@@ -213,17 +190,14 @@ export const useProjectsLoading = () => useProjectStore(state => state.isLoading
 // =============================================================================
 
 // Save project state when it changes
-useProjectStore.subscribe(
-  (state) => ({ projects: state.projects, currentProject: state.currentProject }),
-  () => {
-    // Debounce saves
-    const timeoutId = setTimeout(() => {
-      useProjectStore.getState().saveProjectState()
-    }, 1000)
-    
-    return () => clearTimeout(timeoutId)
-  }
-)
+useProjectStore.subscribe(() => {
+  // Debounce saves
+  const timeoutId = setTimeout(() => {
+    useProjectStore.getState().saveProjectState()
+  }, 1000)
+  
+  return () => clearTimeout(timeoutId)
+})
 
 // Load projects on initialization
 if (typeof window !== 'undefined') {

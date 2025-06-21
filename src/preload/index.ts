@@ -6,6 +6,22 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron'
+import type { 
+  CreateProjectInput, 
+  Project 
+} from '../shared/contracts/ProjectDomain'
+import type { 
+  CreateMemoryInput,
+  Memory,
+  MemoryCleanupCriteria,
+  MemoryQuery,
+  MemorySearchQuery,
+  MemorySearchResult,
+  MemoryStatistics,
+  UpdateMemoryInput
+} from '../shared/contracts/MemoryDomain'
+import type { PagedResult } from '../shared/contracts/common'
+import type { AgentStatus, AgentType } from '../shared/types/agents'
 
 // =============================================================================
 // Type Definitions
@@ -53,8 +69,18 @@ export interface ElectronAPI {
   getFileTree: (projectId: string) => Promise<FileNode>
   
   // Memory operations
-  addMemory: (data: AddMemoryInput) => Promise<Memory>
-  searchMemories: (query: string, options?: SearchOptions) => Promise<Memory[]>
+  addMemory: (data: CreateMemoryInput) => Promise<Memory>
+  searchMemories: (query: MemorySearchQuery) => Promise<MemorySearchResult[]>
+  getMemory: (id: string) => Promise<Memory>
+  updateMemory: (id: string, input: UpdateMemoryInput) => Promise<Memory>
+  archiveMemory: (id: string, reason: string) => Promise<{ success: boolean }>
+  deleteMemory: (id: string) => Promise<{ success: boolean }>
+  getMemories: (query?: MemoryQuery) => Promise<PagedResult<Memory>>
+  getProjectMemories: (projectId: string) => Promise<Memory[]>
+  getAgentMemories: (agentType: string) => Promise<Memory[]>
+  getMemoryStatistics: () => Promise<MemoryStatistics>
+  cleanupMemories: (criteria: MemoryCleanupCriteria) => Promise<{ cleanedCount: number }>
+  checkMemoryHealth: () => Promise<{ healthy: boolean; timestamp: string }>    
   
   // Git operations
   createCheckpoint: (projectId: string, message: string) => Promise<Checkpoint>
@@ -85,11 +111,13 @@ const createSafeInvoke = (channel: string) => {
   }
 }
 
+type EventCallback = (...args: any[]) => void
+
 const createSafeListener = () => {
-  const listeners = new Map<string, Set<Function>>()
+  const listeners = new Map<string, Set<EventCallback>>()
   
   return {
-    on: (channel: string, callback: Function) => {
+    on: (channel: string, callback: EventCallback) => {
       if (!listeners.has(channel)) {
         listeners.set(channel, new Set())
         
@@ -113,7 +141,7 @@ const createSafeListener = () => {
       listeners.get(channel)?.add(callback)
     },
     
-    off: (channel: string, callback: Function) => {
+    off: (channel: string, callback: EventCallback) => {
       const callbacks = listeners.get(channel)
       if (callbacks) {
         callbacks.delete(callback)
@@ -177,6 +205,16 @@ const electronAPI: ElectronAPI = {
   // Memory operations
   addMemory: createSafeInvoke('memory:add'),
   searchMemories: createSafeInvoke('memory:search'),
+  getMemory: createSafeInvoke('memory:get'),
+  updateMemory: createSafeInvoke('memory:update'),
+  archiveMemory: createSafeInvoke('memory:archive'),
+  deleteMemory: createSafeInvoke('memory:delete'),
+  getMemories: createSafeInvoke('memory:list'),
+  getProjectMemories: createSafeInvoke('memory:project'),
+  getAgentMemories: createSafeInvoke('memory:agent'),
+  getMemoryStatistics: createSafeInvoke('memory:statistics'),
+  cleanupMemories: createSafeInvoke('memory:cleanup'),
+  checkMemoryHealth: createSafeInvoke('memory:health'),
   
   // Git operations
   createCheckpoint: createSafeInvoke('git:checkpoint:create'),
@@ -231,20 +269,7 @@ interface HealthStatus {
   version: string
 }
 
-interface CreateProjectInput {
-  name: string
-  description?: string
-  template?: string
-}
-
-interface Project {
-  id: string
-  name: string
-  description: string
-  createdAt: Date
-  updatedAt: Date
-  status: string
-}
+// Project types imported from domain contracts
 
 interface SendMessageInput {
   agentType: AgentType
@@ -263,8 +288,7 @@ interface AgentResponse {
   errors?: any[]
 }
 
-type AgentType = 'producer' | 'architect' | 'engineer' | 'qa'
-type AgentStatus = 'idle' | 'thinking' | 'working' | 'waiting' | 'error'
+// Agent types imported from shared types
 
 interface FileNode {
   name: string
@@ -273,27 +297,7 @@ interface FileNode {
   children?: FileNode[]
 }
 
-interface AddMemoryInput {
-  content: string
-  type: 'global' | 'project' | 'task'
-  projectId?: string
-  taskId?: string
-  metadata?: Record<string, any>
-}
-
-interface Memory {
-  id: string
-  content: string
-  type: string
-  createdAt: Date
-  metadata?: Record<string, any>
-}
-
-interface SearchOptions {
-  type?: string
-  projectId?: string
-  limit?: number
-}
+// Memory types are now imported from contracts
 
 interface Checkpoint {
   id: string

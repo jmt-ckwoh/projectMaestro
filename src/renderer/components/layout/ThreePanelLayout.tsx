@@ -47,7 +47,6 @@ export const ThreePanelLayout: React.FC = () => {
     if (!container) return
 
     const containerRect = container.getBoundingClientRect()
-    const totalWidth = containerRect.width
 
     if (panelId === 'chat') {
       const newWidth = Math.max(
@@ -101,6 +100,9 @@ export const ThreePanelLayout: React.FC = () => {
         document.removeEventListener('mouseup', handleGlobalMouseUp)
       }
     }
+    
+    // Return undefined for the non-resizing case
+    return undefined
   }, [isResizing, handlePanelResize, handleMouseUp])
 
   // =============================================================================

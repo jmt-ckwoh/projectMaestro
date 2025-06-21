@@ -205,10 +205,10 @@ export const useChatStore = create<ChatState & ChatActions>()(
       addMessage: (messageData) => {
         set((state) => {
           const message: ChatMessage = {
+            ...messageData,
             id: crypto.randomUUID(),
             timestamp: new Date(),
-            status: 'delivered',
-            ...messageData
+            status: messageData.status || 'delivered'
           }
           state.messages.push(message)
           
@@ -369,7 +369,7 @@ export const useChatStore = create<ChatState & ChatActions>()(
               
               // Find last user message
               state.lastUserMessage = saved.messages
-                ?.filter(m => m.sender === 'user')
+                ?.filter((m: ChatMessage) => m.sender === 'user')
                 ?.slice(-1)[0] || null
             })
           }
