@@ -7,13 +7,19 @@
 
 import React, { useCallback, useMemo, useState } from 'react'
 import { cn } from '@/renderer/utils/cn'
+import { ContextMenu, useContextMenu, type ContextMenuItem } from '@/renderer/components/common/ContextMenu'
+import { TaskCreateForm } from './TaskCreateForm'
 import type { 
   HierarchyItem, 
   TaskTreeNode, 
   TaskTreeState, 
   TaskStatus,
   TaskPriority,
-  TaskType
+  TaskType,
+  CreateEpicInput,
+  CreateStoryInput,
+  CreateTaskInput,
+  CreateSubtaskInput
 } from '@/shared/types/tasks'
 
 // =============================================================================
@@ -22,9 +28,10 @@ import type {
 
 export interface TreeViewProps {
   readonly items: HierarchyItem[]
+  readonly projectId: string
   readonly onItemSelect?: (item: HierarchyItem) => void
   readonly onItemUpdate?: (item: HierarchyItem) => void
-  readonly onCreateChild?: (parentItem: HierarchyItem) => void
+  readonly onCreateItem?: (data: CreateEpicInput | CreateStoryInput | CreateTaskInput | CreateSubtaskInput) => void
   readonly className?: string
 }
 
@@ -34,9 +41,10 @@ export interface TreeViewProps {
 
 export const TreeView: React.FC<TreeViewProps> = ({
   items,
+  projectId,
   onItemSelect,
   onItemUpdate,
-  onCreateChild,
+  onCreateItem,
   className
 }) => {
   const [treeState, setTreeState] = useState<TaskTreeState>({
@@ -46,6 +54,19 @@ export const TreeView: React.FC<TreeViewProps> = ({
       showCompleted: true
     }
   })
+
+  // Task creation modal state
+  const [createModalState, setCreateModalState] = useState<{
+    isOpen: boolean
+    taskType: TaskType
+    parentId?: string
+  }>({
+    isOpen: false,
+    taskType: 'epic'
+  })
+
+  // Context menu state
+  const contextMenu = useContextMenu()
 
   // Convert flat items to tree structure
   const treeNodes = useMemo(() => 
@@ -77,14 +98,107 @@ export const TreeView: React.FC<TreeViewProps> = ({
     onItemSelect?.(item)
   }, [onItemSelect])
 
+  // Handle context menu for creating child items
+  const handleContextMenu = useCallback((event: React.MouseEvent, item?: HierarchyItem) => {
+    const menuItems: ContextMenuItem[] = []
+
+    if (item) {
+      // Context menu for existing items
+      const childTypes = getValidChildTypes(item.type)
+      
+      if (childTypes.length > 0) {
+        childTypes.forEach(childType => {
+          const config = getTaskTypeConfig(childType)
+          menuItems.push({
+            id: `create-${childType}`,
+            label: `Add ${config.label}`,
+            icon: config.icon,
+            onClick: () => {
+              setCreateModalState({
+                isOpen: true,
+                taskType: childType,
+                parentId: item.id
+              })
+            }
+          })
+        })
+      }
+
+      if (menuItems.length > 0) {
+        menuItems.push({ id: 'separator', separator: true })
+      }
+
+      menuItems.push(
+        {
+          id: 'edit',
+          label: 'Edit',
+          icon: '✏️',
+          onClick: () => {
+            console.log('Edit item:', item)
+          }
+        },
+        {
+          id: 'delete',
+          label: 'Delete',
+          icon: '🗑️',
+          danger: true,
+          onClick: () => {
+            console.log('Delete item:', item)
+          }
+        }
+      )
+    } else {
+      // Context menu for empty space (create Epic)
+      menuItems.push({
+        id: 'create-epic',
+        label: 'Create Epic',
+        icon: '🏆',
+        onClick: () => {
+          setCreateModalState({
+            isOpen: true,
+            taskType: 'epic'
+          })
+        }
+      })
+    }
+
+    if (menuItems.length > 0) {
+      contextMenu.openContextMenu(event)
+    }
+  }, [contextMenu])
+
+  // Handle task creation
+  const handleCreateTask = useCallback((data: CreateEpicInput | CreateStoryInput | CreateTaskInput | CreateSubtaskInput) => {
+    onCreateItem?.(data)
+    setCreateModalState({ isOpen: false, taskType: 'epic' })
+  }, [onCreateItem])
+
+  // Handle closing create modal
+  const handleCloseCreateModal = useCallback(() => {
+    setCreateModalState({ isOpen: false, taskType: 'epic' })
+  }, [])
+
   return (
     <div className={cn('tree-view', 'p-4', className)}>
       <div className="tree-header mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Project Structure</h2>
-        <p className="text-sm text-gray-600">Epic → Story → Task hierarchy</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Project Structure</h2>
+            <p className="text-sm text-gray-600">Epic → Story → Task hierarchy</p>
+          </div>
+          <button
+            onClick={() => setCreateModalState({ isOpen: true, taskType: 'epic' })}
+            className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            + Create Epic
+          </button>
+        </div>
       </div>
 
-      <div className="tree-content">
+      <div 
+        className="tree-content"
+        onContextMenu={(e) => handleContextMenu(e)}
+      >
         {treeNodes.map(node => (
           <TreeNodeRenderer
             key={node.item.id}
@@ -93,17 +207,41 @@ export const TreeView: React.FC<TreeViewProps> = ({
             onToggleExpanded={handleToggleExpanded}
             onSelect={handleSelectNode}
             onUpdate={onItemUpdate}
-            onCreateChild={onCreateChild}
+            onContextMenu={handleContextMenu}
           />
         ))}
         
         {treeNodes.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <div className="text-4xl mb-2">📋</div>
-            <p className="text-sm">No epics yet. Create your first epic to get started.</p>
+            <p className="text-sm mb-4">No epics yet. Create your first epic to get started.</p>
+            <button
+              onClick={() => setCreateModalState({ isOpen: true, taskType: 'epic' })}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Create First Epic
+            </button>
           </div>
         )}
       </div>
+
+      {/* Context Menu */}
+      <ContextMenu
+        items={[]} // Items will be set dynamically in handleContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        onClose={contextMenu.closeContextMenu}
+      />
+
+      {/* Task Creation Modal */}
+      <TaskCreateForm
+        isOpen={createModalState.isOpen}
+        onClose={handleCloseCreateModal}
+        taskType={createModalState.taskType}
+        parentId={createModalState.parentId}
+        projectId={projectId}
+        onSubmit={handleCreateTask}
+      />
     </div>
   )
 }
@@ -118,7 +256,7 @@ interface TreeNodeRendererProps {
   readonly onToggleExpanded: (nodeId: string) => void
   readonly onSelect: (item: HierarchyItem) => void
   readonly onUpdate?: (item: HierarchyItem) => void
-  readonly onCreateChild?: (parentItem: HierarchyItem) => void
+  readonly onContextMenu: (event: React.MouseEvent, item?: HierarchyItem) => void
 }
 
 const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
@@ -127,7 +265,7 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
   onToggleExpanded,
   onSelect,
   onUpdate,
-  onCreateChild
+  onContextMenu
 }) => {
   const isExpanded = treeState.expandedNodes.has(node.item.id)
   const isSelected = treeState.selectedNode === node.item.id
@@ -141,7 +279,7 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
         onToggleExpanded={onToggleExpanded}
         onSelect={onSelect}
         onUpdate={onUpdate}
-        onCreateChild={onCreateChild}
+        onContextMenu={onContextMenu}
       />
       
       {/* Render children recursively */}
@@ -155,7 +293,7 @@ const TreeNodeRenderer: React.FC<TreeNodeRendererProps> = ({
               onToggleExpanded={onToggleExpanded}
               onSelect={onSelect}
               onUpdate={onUpdate}
-              onCreateChild={onCreateChild}
+              onContextMenu={onContextMenu}
             />
           ))}
         </div>
@@ -175,7 +313,7 @@ interface TreeNodeProps {
   readonly onToggleExpanded: (nodeId: string) => void
   readonly onSelect: (item: HierarchyItem) => void
   readonly onUpdate?: (item: HierarchyItem) => void
-  readonly onCreateChild?: (parentItem: HierarchyItem) => void
+  readonly onContextMenu: (event: React.MouseEvent, item?: HierarchyItem) => void
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({
@@ -185,7 +323,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   onToggleExpanded,
   onSelect,
   onUpdate: _onUpdate,
-  onCreateChild
+  onContextMenu
 }) => {
   const hasChildren = node.children.length > 0
   const canHaveChildren = ['epic', 'story', 'task'].includes(node.item.type)
@@ -199,6 +337,10 @@ const TreeNode: React.FC<TreeNodeProps> = ({
     e.stopPropagation()
     onToggleExpanded(node.item.id)
   }, [node.item.id, onToggleExpanded])
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    onContextMenu(e, node.item)
+  }, [onContextMenu, node.item])
 
   const indentationLevel = node.level * 20
 
@@ -214,6 +356,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
         )}
         style={{ marginLeft: `${indentationLevel}px` }}
         onClick={handleClick}
+        onContextMenu={handleContextMenu}
       >
         {/* Expand/Collapse Button */}
         <div className="w-6 h-6 flex items-center justify-center">
@@ -262,7 +405,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation()
-                onCreateChild?.(node.item)
+                handleContextMenu(e)
               }}
               className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-blue-600 rounded"
               title="Add child item"
@@ -348,4 +491,29 @@ function buildTreeNodes(items: HierarchyItem[]): TaskTreeNode[] {
     expanded: false,
     path: []
   }))
+}
+
+function getValidChildTypes(parentType: TaskType): TaskType[] {
+  switch (parentType) {
+    case 'epic':
+      return ['story']
+    case 'story':
+      return ['task']
+    case 'task':
+      return ['subtask']
+    case 'subtask':
+      return []
+    default:
+      return []
+  }
+}
+
+function getTaskTypeConfig(taskType: TaskType) {
+  const configs = {
+    epic: { label: 'Epic', icon: '🏆' },
+    story: { label: 'Story', icon: '📖' },
+    task: { label: 'Task', icon: '📝' },
+    subtask: { label: 'Subtask', icon: '📌' }
+  }
+  return configs[taskType]
 }

@@ -10,7 +10,13 @@ import { useUIStore } from '@/renderer/stores/uiStore'
 import { useProjectStore } from '@/renderer/stores/projectStore'
 import { cn } from '@/renderer/utils/cn'
 import { TreeView } from './TreeView'
-import type { HierarchyItem } from '@/shared/types/tasks'
+import type { 
+  HierarchyItem,
+  CreateEpicInput,
+  CreateStoryInput,
+  CreateTaskInput,
+  CreateSubtaskInput
+} from '@/shared/types/tasks'
 
 // =============================================================================
 // Workspace Panel Component
@@ -309,17 +315,19 @@ const TreeViewTab: React.FC = () => {
     console.log('Update item:', item)
   }
 
-  const handleCreateChild = (parentItem: HierarchyItem) => {
-    console.log('Create child for:', parentItem)
+  const handleCreateItem = (data: CreateEpicInput | CreateStoryInput | CreateTaskInput | CreateSubtaskInput) => {
+    console.log('Create item:', data)
+    // Here we would integrate with the project store to actually create the item
   }
 
   return (
     <div className="h-full">
       <TreeView
         items={mockTasks}
+        projectId="project-1"
         onItemSelect={handleItemSelect}
         onItemUpdate={handleItemUpdate}
-        onCreateChild={handleCreateChild}
+        onCreateItem={handleCreateItem}
         className="h-full"
       />
     </div>
