@@ -15,7 +15,7 @@ export default defineConfig({
           build: {
             outDir: 'dist/main',
             rollupOptions: {
-              external: ['electron', 'vectordb']
+              external: ['electron', 'vectordb', '@lancedb/lancedb']
             }
           },
           resolve: {
@@ -34,7 +34,10 @@ export default defineConfig({
           build: {
             outDir: 'dist/preload',
             rollupOptions: {
-              external: ['electron']
+              external: ['electron'],
+              output: {
+                format: 'cjs'
+              }
             }
           }
         }

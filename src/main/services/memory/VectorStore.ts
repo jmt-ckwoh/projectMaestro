@@ -68,7 +68,7 @@ export class LanceDBVectorStore implements IVectorStore {
           content: 'Sample content for schema creation',
           type: 'global',
           scope: 'system',
-          tags: [],
+          tags: ['sample'], // LanceDB needs non-empty array to infer schema
           source: 'system',
           importance: 0.5,
           createdAt: new Date().toISOString(),
