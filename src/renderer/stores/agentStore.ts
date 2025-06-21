@@ -61,6 +61,7 @@ export interface AgentActions {
   // Team Coordination
   getAvailableAgents: () => Agent[]
   getBusyAgents: () => Agent[]
+  getAgentByType: (type: AgentType) => Agent | undefined
   
   // Persistence
   saveAgentState: () => Promise<void>
@@ -272,6 +273,11 @@ export const useAgentStore = create<AgentState & AgentActions>()(
       return state.agents.filter(agent => 
         agent.isActive && [AgentStatus.THINKING, AgentStatus.WORKING].includes(state.statuses[agent.id])
       )
+    },
+
+    getAgentByType: (type) => {
+      const state = get()
+      return state.agents.find(agent => agent.type === type)
     },
 
     // =============================================================================

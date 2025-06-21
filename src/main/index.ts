@@ -10,6 +10,7 @@ import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import { isDev } from './utils'
 import { MemoryIPCHandlers } from './services/memory/MemoryIPCHandlers'
+import { ChatIPCHandlers } from './services/chat/ChatIPCHandlers'
 import { createAgentOrchestrator } from './services/agents/AgentOrchestrator'
 import { EventBus } from './services/core/EventBus'
 
@@ -23,6 +24,7 @@ const __dirname = dirname(__filename)
 
 let mainWindow: BrowserWindow | null = null
 let memoryIPCHandlers: MemoryIPCHandlers | null = null
+let chatIPCHandlers: ChatIPCHandlers | null = null
 let agentOrchestrator: any | null = null
 let eventBus: EventBus | null = null
 
@@ -132,6 +134,12 @@ const initializeServices = async (): Promise<void> => {
     await memoryIPCHandlers.initialize()
     console.log('Memory System initialized successfully')
     
+    // Initialize Chat System
+    console.log('Initializing Chat System...')
+    chatIPCHandlers = new ChatIPCHandlers()
+    await chatIPCHandlers.initialize()
+    console.log('Chat System initialized successfully')
+    
     // Initialize Agent System with Memory Integration
     console.log('Initializing Agent System...')
     const memoryService = memoryIPCHandlers.getMemoryService()
@@ -168,6 +176,12 @@ const cleanupServices = async (): Promise<void> => {
     if (agentOrchestrator) {
       await agentOrchestrator.shutdown()
       agentOrchestrator = null
+    }
+    
+    // Cleanup Chat System
+    if (chatIPCHandlers) {
+      await chatIPCHandlers.cleanup()
+      chatIPCHandlers = null
     }
     
     // Cleanup Memory System

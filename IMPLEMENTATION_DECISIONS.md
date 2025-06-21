@@ -28,6 +28,18 @@ This document captures key implementation decisions made during detailed plannin
   - Agent personalities in group conversation (not verbose individual outputs)
   - Drill-down views for full LLM thinking/work details
 - **Alternative Considered**: Separate chat threads per agent (rejected as less collaborative)
+- **✅ IMPLEMENTED**: Epic 1 complete with @mention system, message persistence, and threading
+
+#### **Decision**: @Mention System Implementation Approach
+- **Pattern**: Real-time parsing with interactive autocomplete dropdown
+- **Features**:
+  - Regex-based agent detection (@producer, @architect, @engineer, @qa)
+  - Keyboard navigation (arrows, enter/tab, escape)
+  - Visual targeting indicators in message history
+  - Integration with agent routing through metadata
+- **Alternative Considered**: Prefix-based targeting (/producer vs @producer) (rejected as less familiar)
+- **Learning**: Users expect familiar social media interaction patterns (Discord/Slack @mentions)
+- **Implementation**: Successfully integrated with TypeScript safety, IPC validation, and visual feedback
 - **Impact**: Creates natural team dynamics and familiar communication patterns
 
 #### **Decision**: Project-Based Organization (Exclusive Model)

@@ -55,6 +55,18 @@ export interface ElectronAPI {
   saveChatHistory: (history: any) => Promise<void>
   loadChatHistory: () => Promise<any>
   
+  // Enhanced chat operations
+  saveMessages: (messages: any[]) => Promise<{ success: boolean; error?: string }>
+  loadMessages: (query?: any) => Promise<{ messages: any[]; totalCount: number; hasMore: boolean }>
+  searchMessages: (query: string, options?: any) => Promise<{ messages: any[]; totalCount: number; hasMore: boolean }>
+  deleteMessage: (messageId: string) => Promise<{ success: boolean; error?: string }>
+  saveThreads: (threads: any[]) => Promise<{ success: boolean; error?: string }>
+  loadThreads: (includeArchived?: boolean) => Promise<any[]>
+  deleteThread: (threadId: string) => Promise<{ success: boolean; error?: string }>
+  saveConversationContext: (context: string[]) => Promise<{ success: boolean; error?: string }>
+  loadConversationContext: () => Promise<string[]>
+  cleanupChatHistory: (olderThan: Date) => Promise<{ deletedCount: number; error?: string }>
+  
   // UI state management
   saveUIState: (state: any) => Promise<void>
   loadUIState: () => Promise<any>
@@ -188,6 +200,18 @@ const electronAPI: ElectronAPI = {
   // Chat management
   saveChatHistory: createSafeInvoke('chat:save-history'),
   loadChatHistory: createSafeInvoke('chat:load-history'),
+  
+  // Enhanced chat operations
+  saveMessages: createSafeInvoke('chat:save-messages'),
+  loadMessages: createSafeInvoke('chat:load-messages'),
+  searchMessages: createSafeInvoke('chat:search-messages'),
+  deleteMessage: createSafeInvoke('chat:delete-message'),
+  saveThreads: createSafeInvoke('chat:save-threads'),
+  loadThreads: createSafeInvoke('chat:load-threads'),
+  deleteThread: createSafeInvoke('chat:delete-thread'),
+  saveConversationContext: createSafeInvoke('chat:save-context'),
+  loadConversationContext: createSafeInvoke('chat:load-context'),
+  cleanupChatHistory: createSafeInvoke('chat:cleanup'),
   
   // UI state management
   saveUIState: createSafeInvoke('ui:save-state'),

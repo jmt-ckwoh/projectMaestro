@@ -58,6 +58,12 @@ export interface ChatState {
   // Conversation Context
   conversationContext: string[]
   lastUserMessage: ChatMessage | null
+  
+  // History Management
+  isLoadingHistory: boolean
+  hasMoreHistory: boolean
+  historyOffset: number
+  totalMessageCount: number
 }
 
 // =============================================================================
@@ -94,6 +100,14 @@ export interface ChatActions {
   // Persistence
   saveChatHistory: () => Promise<void>
   loadChatHistory: () => Promise<void>
+  
+  // Enhanced persistence operations
+  loadMoreMessages: (limit?: number) => Promise<void>
+  searchMessageHistory: (query: string) => Promise<ChatMessage[]>
+  saveMessagesToHistory: (messages: ChatMessage[]) => Promise<void>
+  loadThreadHistory: () => Promise<void>
+  createNewThread: (name: string, description?: string) => Promise<string>
+  archiveCurrentThread: () => Promise<void>
 }
 
 // =============================================================================
@@ -107,7 +121,11 @@ const DEFAULT_CHAT_STATE: ChatState = {
   isTyping: false,
   typingIndicators: [],
   conversationContext: [],
-  lastUserMessage: null
+  lastUserMessage: null,
+  isLoadingHistory: false,
+  hasMoreHistory: true,
+  historyOffset: 0,
+  totalMessageCount: 0
 }
 
 // =============================================================================
@@ -134,7 +152,11 @@ export const useChatStore = create<ChatState & ChatActions>()(
           timestamp: new Date(),
           threadId: input.threadId || get().activeThread || undefined,
           status: 'sending',
-          metadata: input.metadata
+          metadata: {
+            ...input.metadata,
+            targetAgent: input.targetAgent,
+            userInitiated: true
+          }
         }
 
         set((state) => {
@@ -366,6 +388,9 @@ export const useChatStore = create<ChatState & ChatActions>()(
               state.messages = saved.messages || []
               state.threads = saved.threads || []
               state.conversationContext = saved.conversationContext || []
+              state.totalMessageCount = saved.messages?.length || 0
+              state.historyOffset = saved.messages?.length || 0
+              state.hasMoreHistory = false // All messages loaded from file initially
               
               // Find last user message
               state.lastUserMessage = saved.messages
@@ -375,6 +400,135 @@ export const useChatStore = create<ChatState & ChatActions>()(
           }
         } catch (error) {
           console.error('Failed to load chat history:', error)
+        }
+      },
+
+      // =============================================================================
+      // Enhanced Persistence Operations
+      // =============================================================================
+
+      loadMoreMessages: async (limit = 50) => {
+        const state = get()
+        if (state.isLoadingHistory || !state.hasMoreHistory) {
+          return
+        }
+
+        set((state) => {
+          state.isLoadingHistory = true
+        })
+
+        try {
+          const result = await window.api.loadMessages({
+            threadId: state.activeThread,
+            limit,
+            offset: state.historyOffset
+          })
+
+          set((state) => {
+            // Prepend older messages
+            const newMessages = result.messages.filter(msg => 
+              !state.messages.some(existing => existing.id === msg.id)
+            )
+            state.messages = [...newMessages, ...state.messages]
+            state.historyOffset = state.historyOffset + result.messages.length
+            state.hasMoreHistory = result.hasMore
+            state.totalMessageCount = result.totalCount
+            state.isLoadingHistory = false
+          })
+        } catch (error) {
+          console.error('Failed to load more messages:', error)
+          set((state) => {
+            state.isLoadingHistory = false
+          })
+        }
+      },
+
+      searchMessageHistory: async (query: string): Promise<ChatMessage[]> => {
+        try {
+          const result = await window.api.searchMessages(query, {
+            threadId: get().activeThread,
+            limit: 100
+          })
+          return result.messages || []
+        } catch (error) {
+          console.error('Failed to search message history:', error)
+          return []
+        }
+      },
+
+      saveMessagesToHistory: async (messages: ChatMessage[]) => {
+        try {
+          await window.api.saveMessages(messages)
+        } catch (error) {
+          console.error('Failed to save messages to history:', error)
+        }
+      },
+
+      loadThreadHistory: async () => {
+        try {
+          const threads = await window.api.loadThreads(false)
+          set((state) => {
+            state.threads = threads || []
+          })
+        } catch (error) {
+          console.error('Failed to load thread history:', error)
+        }
+      },
+
+      createNewThread: async (name: string, description?: string): Promise<string> => {
+        const threadId = crypto.randomUUID()
+        const thread: ChatThread = {
+          id: threadId,
+          name,
+          description,
+          participants: ['user'],
+          createdAt: new Date(),
+          lastActivity: new Date(),
+          isArchived: false
+        }
+
+        try {
+          await window.api.saveThreads([thread])
+          
+          set((state) => {
+            state.threads.push(thread)
+            state.activeThread = threadId
+            // Reset history state for new thread
+            state.messages = []
+            state.historyOffset = 0
+            state.hasMoreHistory = false
+            state.totalMessageCount = 0
+          })
+
+          return threadId
+        } catch (error) {
+          console.error('Failed to create new thread:', error)
+          throw error
+        }
+      },
+
+      archiveCurrentThread: async () => {
+        const state = get()
+        if (!state.activeThread) {
+          return
+        }
+
+        try {
+          const thread = state.threads.find(t => t.id === state.activeThread)
+          if (thread) {
+            const archivedThread = { ...thread, isArchived: true }
+            await window.api.saveThreads([archivedThread])
+            
+            set((state) => {
+              const index = state.threads.findIndex(t => t.id === state.activeThread)
+              if (index > -1) {
+                state.threads[index].isArchived = true
+              }
+              state.activeThread = null
+            })
+          }
+        } catch (error) {
+          console.error('Failed to archive thread:', error)
         }
       }
     }))
@@ -389,25 +543,56 @@ export const useMessages = () => useChatStore(state => state.messages)
 export const useActiveThread = () => useChatStore(state => state.activeThread)
 export const useTypingIndicators = () => useChatStore(state => state.typingIndicators)
 export const useConversationContext = () => useChatStore(state => state.conversationContext)
+export const useThreads = () => useChatStore(state => state.threads)
+export const useHistoryState = () => useChatStore(state => ({
+  isLoadingHistory: state.isLoadingHistory,
+  hasMoreHistory: state.hasMoreHistory,
+  totalMessageCount: state.totalMessageCount
+}))
 
 // =============================================================================
 // Auto-save Chat History
 // =============================================================================
 
-// Save chat history when messages change
+// Auto-save messages when they change
 useChatStore.subscribe(
   (state) => state.messages,
-  () => {
-    // Debounce saves
-    const timeoutId = setTimeout(() => {
-      useChatStore.getState().saveChatHistory()
-    }, 2000)
-    
-    return () => clearTimeout(timeoutId)
+  (messages, previousMessages) => {
+    // Only save if there are new messages
+    if (messages.length > previousMessages.length) {
+      // Debounce saves
+      const timeoutId = setTimeout(() => {
+        const newMessages = messages.slice(previousMessages.length)
+        useChatStore.getState().saveMessagesToHistory(newMessages)
+      }, 1000)
+      
+      return () => clearTimeout(timeoutId)
+    }
+    return undefined
   }
 )
 
-// Load chat history on initialization
+// Auto-save threads when they change
+useChatStore.subscribe(
+  (state) => state.threads,
+  (threads, previousThreads) => {
+    if (threads.length !== previousThreads.length || 
+        threads.some((t, i) => JSON.stringify(t) !== JSON.stringify(previousThreads[i]))) {
+      const timeoutId = setTimeout(() => {
+        window.api.saveThreads(threads).catch(error => 
+          console.error('Failed to auto-save threads:', error)
+        )
+      }, 500)
+      
+      return () => clearTimeout(timeoutId)
+    }
+    return undefined
+  }
+)
+
+// Load chat history and threads on initialization
 if (typeof window !== 'undefined') {
-  useChatStore.getState().loadChatHistory()
+  const store = useChatStore.getState()
+  store.loadChatHistory()
+  store.loadThreadHistory()
 }

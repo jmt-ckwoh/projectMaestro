@@ -1,14 +1,19 @@
 /**
- * Chat Panel Component
+ * Chat Panel Component - Team Chat Room Interface
  * 
- * Left panel of the Three-Panel Layout - implements "Slack-like" interface
- * for communicating with AI agent personas
+ * Left panel implementing team chat room model where all agents participate
+ * in a single conversation thread, similar to Slack for development teams.
  */
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { cn } from '@/renderer/utils/cn'
 import { useChatStore } from '@/renderer/stores/chatStore'
 import { useAgentStore } from '@/renderer/stores/agentStore'
-import { cn } from '@/renderer/utils/cn'
+import { AgentType } from '@/shared/contracts/AgentDomain'
+import { MessageInput } from './MessageInput'
+import { MessageList } from './MessageList'
+import { AgentRecommendationPanel } from './AgentPersonality'
+import { ThreadManager } from './ThreadManager'
 
 // =============================================================================
 // Chat Panel Component
@@ -18,41 +23,71 @@ export const ChatPanel: React.FC = () => {
   const {
     messages,
     activeThread,
-    isTyping,
+    typingIndicators,
     sendMessage,
     clearHistory
   } = useChatStore()
 
-  const { agents } = useAgentStore()
-  const [inputValue, setInputValue] = useState('')
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const { agents, statuses } = useAgentStore()
+  const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null)
+  const [showAgentSelector, setShowAgentSelector] = useState(false)
+  const [agentRecommendations, setAgentRecommendations] = useState<Array<{
+    agentType: AgentType
+    confidence: number
+    reasoning: string
+    isRecommended: boolean
+  }>>([])
+  const [lastUserMessage, setLastUserMessage] = useState<string>('')
+  const [showThreadManager, setShowThreadManager] = useState(false)
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-save chat periodically
+  const saveChatHistory = useChatStore(state => state.saveChatHistory)
+  
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
-
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    const interval = setInterval(() => {
+      saveChatHistory()
+    }, 30000) // Save every 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [saveChatHistory])
 
   // =============================================================================
   // Event Handlers
   // =============================================================================
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return
+  // =============================================================================
+  // Agent Routing Functions
+  // =============================================================================
 
-    const messageText = inputValue.trim()
-    setInputValue('')
-
+  const getAgentRecommendations = useCallback(async (userMessage: string) => {
     try {
+      // Get conversation history for context
+      const recentMessages = messages.slice(-5).map(m => m.content)
+      
+      // Call the message routing service (placeholder for now)
+      const recommendations = await analyzeMessageForRouting(userMessage, recentMessages)
+      setAgentRecommendations(recommendations)
+    } catch (error) {
+      console.error('Failed to get agent recommendations:', error)
+    }
+  }, [messages])
+
+  const handleSendMessage = useCallback(async (content: string, targetAgent?: AgentType) => {
+    try {
+      // Store the user message for routing analysis
+      setLastUserMessage(content)
+      
+      // If no specific agent selected, get routing recommendations
+      if (!targetAgent) {
+        await getAgentRecommendations(content)
+      } else {
+        // Clear recommendations when agent is explicitly selected
+        setAgentRecommendations([])
+      }
+
       await sendMessage({
-        content: messageText,
-        targetAgent: selectedAgent || undefined,
+        content,
+        targetAgent,
         metadata: {
           timestamp: new Date(),
           userInitiated: true
@@ -60,247 +95,214 @@ export const ChatPanel: React.FC = () => {
       })
     } catch (error) {
       console.error('Failed to send message:', error)
-      // TODO: Add error notification
+      throw error // Let MessageInput handle the error
     }
-  }
+  }, [sendMessage, getAgentRecommendations])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
+  const handleAgentSelect = useCallback((agent: AgentType | null) => {
+    setSelectedAgent(agent)
+  }, [])
 
-  const handleClearHistory = () => {
+  const handleClearHistory = useCallback(() => {
     if (window.confirm('Clear all chat history? This cannot be undone.')) {
       clearHistory()
     }
-  }
+  }, [clearHistory])
 
-  // =============================================================================
-  // Render Helpers
-  // =============================================================================
+  const handleMessageAction = useCallback((messageId: string, action: 'edit' | 'delete' | 'reply') => {
+    // TODO: Implement message actions
+    console.warn('Message action not implemented:', { messageId, action })
+  }, [])
 
-  const formatTimestamp = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).format(date)
-  }
-
-  const getAgentAvatar = (agentId: string) => {
-    const agent = agents.find(a => a.id === agentId)
-    if (!agent) return '🤖'
+  const handleSelectRecommendedAgent = useCallback((agentType: AgentType) => {
+    setSelectedAgent(agentType)
+    setAgentRecommendations([]) // Clear recommendations after selection
     
-    const avatarMap: Record<string, string> = {
-      'producer': '👔',
-      'architect': '🏗️',
-      'engineer': '⚡',
-      'qa': '🔍'
+    // If there's a recent message, resend it to the selected agent
+    if (lastUserMessage) {
+      handleSendMessage(lastUserMessage, agentType)
+    }
+  }, [lastUserMessage, handleSendMessage])
+
+  // Placeholder routing analysis function
+  const analyzeMessageForRouting = async (
+    message: string, 
+    _conversationHistory: string[]
+  ): Promise<Array<{
+    agentType: AgentType
+    confidence: number
+    reasoning: string
+    isRecommended: boolean
+  }>> => {
+    // Simple keyword-based routing for demonstration
+    const messageWords = message.toLowerCase()
+    
+    const recommendations = []
+    
+    // Producer routing
+    if (messageWords.includes('project') || messageWords.includes('plan') || messageWords.includes('help')) {
+      recommendations.push({
+        agentType: AgentType.PRODUCER,
+        confidence: 0.85,
+        reasoning: 'Message contains project planning or general help keywords',
+        isRecommended: true
+      })
     }
     
-    return avatarMap[agent.type] || '🤖'
+    // Architect routing
+    if (messageWords.includes('design') || messageWords.includes('architecture') || messageWords.includes('database')) {
+      recommendations.push({
+        agentType: AgentType.ARCHITECT,
+        confidence: 0.90,
+        reasoning: 'Message contains technical design or architecture keywords',
+        isRecommended: true
+      })
+    }
+    
+    // Engineer routing
+    if (messageWords.includes('code') || messageWords.includes('implement') || messageWords.includes('function')) {
+      recommendations.push({
+        agentType: AgentType.ENGINEER,
+        confidence: 0.88,
+        reasoning: 'Message contains coding or implementation keywords',
+        isRecommended: true
+      })
+    }
+    
+    // QA routing
+    if (messageWords.includes('test') || messageWords.includes('bug') || messageWords.includes('quality')) {
+      recommendations.push({
+        agentType: AgentType.QA,
+        confidence: 0.87,
+        reasoning: 'Message contains testing or quality assurance keywords',
+        isRecommended: true
+      })
+    }
+    
+    // Default to Producer if no specific match
+    if (recommendations.length === 0) {
+      recommendations.push({
+        agentType: AgentType.PRODUCER,
+        confidence: 0.60,
+        reasoning: 'No specific keywords detected, routing to Producer for general assistance',
+        isRecommended: true
+      })
+    }
+    
+    // Sort by confidence and mark the highest as recommended
+    recommendations.sort((a, b) => b.confidence - a.confidence)
+    recommendations.forEach((rec, index) => {
+      rec.isRecommended = index === 0
+    })
+    
+    return recommendations
   }
 
-  const getAgentName = (agentId: string) => {
-    const agent = agents.find(a => a.id === agentId)
-    return agent?.name || 'AI Assistant'
-  }
+  // =============================================================================
+  // Agent Status Management
+  // =============================================================================
+
+  const activeAgents = agents.filter(agent => statuses[agent.id] !== 'error')
+  const hasTypingAgents = typingIndicators.length > 0
 
   // =============================================================================
   // Render
   // =============================================================================
 
   return (
-    <div className="flex flex-col h-full bg-white">
-      {/* Chat Header */}
-      <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Team Chat</h2>
-            <p className="text-sm text-gray-600">
-              {activeThread ? `Thread: ${activeThread}` : 'General conversation'}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleClearHistory}
-              className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
-              title="Clear chat history"
-            >
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+    <div className="flex h-full bg-white relative">
+      {/* Main Chat Area */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Chat Header */}
+        <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">Team Chat</h2>
+                {hasTypingAgents && (
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-xs text-green-600">Active</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                {activeThread ? `Thread: ${activeThread}` : `${activeAgents.length} agents available`}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowThreadManager(!showThreadManager)}
+                className={cn(
+                  'p-1.5 rounded-lg transition-colors',
+                  showThreadManager 
+                    ? 'bg-blue-100 text-blue-600' 
+                    : 'hover:bg-gray-200 text-gray-600'
+                )}
+                title="Conversation threads"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setShowAgentSelector(!showAgentSelector)}
+                className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                title="Agent selector"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-7.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+              </button>
+              <button
+                onClick={handleClearHistory}
+                className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                title="Clear chat history"
+              >
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Messages Area */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <MessageList
+            messages={messages}
+            typingIndicators={typingIndicators}
+            onMessageAction={handleMessageAction}
+          />
+
+          {/* Agent Recommendations */}
+          {agentRecommendations.length > 0 && (
+            <div className="border-t border-gray-200 p-4 bg-gray-50">
+              <AgentRecommendationPanel
+                recommendations={agentRecommendations}
+                onSelectAgent={handleSelectRecommendedAgent}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Message Input */}
+        <MessageInput
+          onSendMessage={handleSendMessage}
+          selectedAgent={selectedAgent}
+          onAgentSelect={handleAgentSelect}
+        />
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">🎭</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Welcome to Project Maestro
-            </h3>
-            <p className="text-gray-600 text-sm max-w-xs mx-auto">
-              Start a conversation with your AI team. Type your project idea or ask questions!
-            </p>
-          </div>
-        ) : (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                'flex gap-3',
-                message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
-              )}
-            >
-              {/* Avatar */}
-              <div className={cn(
-                'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm',
-                message.sender === 'user' 
-                  ? 'bg-blue-100 text-blue-800' 
-                  : 'bg-gray-100 text-gray-800'
-              )}>
-                {message.sender === 'user' ? '👤' : getAgentAvatar(message.agentId || '')}
-              </div>
-
-              {/* Message Content */}
-              <div className={cn(
-                'flex-1 max-w-[80%]',
-                message.sender === 'user' ? 'text-right' : 'text-left'
-              )}>
-                {/* Message Header */}
-                <div className={cn(
-                  'flex items-center gap-2 mb-1',
-                  message.sender === 'user' ? 'justify-end' : 'justify-start'
-                )}>
-                  <span className="text-sm font-medium text-gray-900">
-                    {message.sender === 'user' ? 'You' : getAgentName(message.agentId || '')}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {formatTimestamp(new Date(message.timestamp))}
-                  </span>
-                </div>
-
-                {/* Message Bubble */}
-                <div className={cn(
-                  'px-3 py-2 rounded-lg max-w-full',
-                  message.sender === 'user'
-                    ? 'bg-blue-600 text-white ml-8'
-                    : 'bg-gray-100 text-gray-900 mr-8'
-                )}>
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  
-                  {/* Message Status */}
-                  {message.status && message.status !== 'delivered' && (
-                    <div className={cn(
-                      'text-xs mt-1',
-                      message.sender === 'user' ? 'text-blue-200' : 'text-gray-500'
-                    )}>
-                      {message.status === 'sending' && '⏳ Sending...'}
-                      {message.status === 'error' && '❌ Failed to send'}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-
-        {/* Typing Indicator */}
-        {isTyping && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">
-              🤖
-            </div>
-            <div className="bg-gray-100 rounded-lg px-3 py-2">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Agent Selector */}
-      {agents.length > 0 && (
-        <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600">Direct to:</span>
-            <button
-              onClick={() => setSelectedAgent(null)}
-              className={cn(
-                'px-2 py-1 rounded text-xs font-medium transition-colors',
-                !selectedAgent 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
-              Everyone
-            </button>
-            {agents.map((agent) => (
-              <button
-                key={agent.id}
-                onClick={() => setSelectedAgent(agent.id)}
-                className={cn(
-                  'px-2 py-1 rounded text-xs font-medium transition-colors',
-                  selectedAgent === agent.id
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'text-gray-600 hover:text-gray-900'
-                )}
-              >
-                {getAgentAvatar(agent.id)} {agent.name}
-              </button>
-            ))}
-          </div>
+      {/* Thread Manager Sidebar */}
+      {showThreadManager && (
+        <div className="w-80 flex-shrink-0">
+          <ThreadManager 
+            onClose={() => setShowThreadManager(false)}
+          />
         </div>
       )}
-
-      {/* Message Input */}
-      <div className="flex-shrink-0 p-4 border-t border-gray-200">
-        <div className="flex gap-2">
-          <textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={selectedAgent ? `Message ${getAgentName(selectedAgent)}...` : "Type your message..."}
-            className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            rows={2}
-            maxLength={2000}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim()}
-            className={cn(
-              'px-4 py-2 rounded-lg font-medium text-sm transition-colors',
-              inputValue.trim()
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            )}
-          >
-            Send
-          </button>
-        </div>
-        
-        <div className="flex justify-between items-center mt-2">
-          <span className="text-xs text-gray-500">
-            {selectedAgent ? `Messaging ${getAgentName(selectedAgent)}` : 'General chat'}
-          </span>
-          <span className="text-xs text-gray-500">
-            {inputValue.length}/2000
-          </span>
-        </div>
-      </div>
     </div>
   )
 }
