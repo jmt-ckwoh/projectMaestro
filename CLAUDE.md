@@ -37,6 +37,32 @@ See `PROJECT_VISION.md` for complete product definition and user journey details
 - Use structured agent personas, document-driven development, and session management in our own development process
 - Learn and refine collaborative patterns through authentic usage
 
+### CRITICAL: Runtime Error Testing Requirements
+**NEVER SHIP CODE WITHOUT RUNTIME ERROR TESTING**
+
+Based on critical testing failures on 2025-06-21, ALL development MUST include:
+
+1. **Console Error Detection**: Monitor and validate zero console errors
+2. **IPC Handler Testing**: Validate all IPC channels used by stores  
+3. **Store Initialization Testing**: Ensure stores load without "No handler registered" errors
+4. **React Error Boundary Testing**: Check for infinite loops and render issues
+5. **Backend Health Validation**: Confirm all services initialize correctly
+
+**Required Commands Before ANY Commit:**
+```bash
+npm run test:critical  # Runs contracts + runtime error tests
+npm run test:runtime-errors  # Playwright runtime validation
+```
+
+**Testing Documentation**: See `TESTING_RUNTIME_ERRORS.md` for detailed requirements.
+
+**Failure Criteria**: Code MUST NOT be committed if:
+- Any console.error() messages (except documented exceptions)
+- Any "No handler registered for" IPC errors  
+- Any React infinite loop warnings
+- Any store initialization failures
+- Backend services report unhealthy status
+
 ### Implementation Decision Documentation
 - All strategic decisions captured in `IMPLEMENTATION_DECISIONS.md` to prevent context loss
 - Detailed implementation approach documented in `PROJECT_VISION.md`

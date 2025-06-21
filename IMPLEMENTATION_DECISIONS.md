@@ -125,6 +125,28 @@ This document captures key implementation decisions made during detailed plannin
 - ✅ Agent personalities are distinct and engaging
 - **Impact**: Clear milestones for evaluating progress and user value delivery
 
+## 🚨 **Critical Testing Failures Analysis (2025-06-21)**
+
+### **Runtime Error Detection Failure**
+**Issue**: Critical runtime errors were missed during development testing and only discovered through user manual testing.
+
+**Root Cause**: Testing approach focused on visual rendering rather than functional validation.
+
+**Failed Tests**: 
+- Missing IPC handlers causing "No handler registered" errors
+- React infinite loops causing app crashes
+- Duplicate handler registration preventing backend initialization
+
+**Solution Implemented**:
+- Created `TESTING_RUNTIME_ERRORS.md` with mandatory runtime testing requirements
+- Added `tests/e2e/runtime-errors.electron.spec.ts` for comprehensive error detection
+- Updated `CLAUDE.md` with strict testing requirements before commits
+- Added `npm run test:critical` script combining contract and runtime tests
+
+**Prevention**: All future development MUST run runtime error tests before commits.
+
+**Decision**: Never ship code without console error monitoring and IPC validation.
+
 ## 🔍 **Research Tasks Identified**
 
 ### **Development Environment Analysis**

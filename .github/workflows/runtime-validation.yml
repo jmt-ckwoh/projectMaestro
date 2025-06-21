@@ -1,0 +1,52 @@
+name: Runtime Error Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  runtime-error-detection:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: TypeScript compilation check
+      run: npm run type-check
+    
+    - name: Contract tests
+      run: npm run test:contracts
+    
+    - name: Install Playwright browsers
+      run: npx playwright install
+    
+    - name: Runtime error detection tests
+      run: npm run test:runtime-errors
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: runtime-test-results
+        path: |
+          test-results/
+          playwright-report/
+    
+    - name: Fail on runtime errors
+      run: |
+        if [ -f "test-results/runtime-errors.json" ]; then
+          echo "❌ Runtime errors detected - see test results"
+          exit 1
+        fi
+        echo "✅ No runtime errors detected"
