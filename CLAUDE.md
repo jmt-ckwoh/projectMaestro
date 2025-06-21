@@ -30,7 +30,8 @@ See `PROJECT_VISION.md` for complete product definition and user journey details
 ## Management Principles
 
 ### Project Task Management
-- `tasks/tasks-rfc-maestro` is our master record of progress on Maestro. it should ALWAYS be kept up to date whenever we identify more tasks or complete tasks. ALWAYS do this proactively.
+- `maestro_agile_tasks.md` is our primary task tracking file using Epic → Story → Task structure with story point estimates. This should ALWAYS be kept up to date whenever we identify more tasks or complete tasks. ALWAYS do this proactively.
+- `tasks/tasks-rfc-maestro.md` serves as detailed historical record of implementation progress and should be maintained for reference.
 
 ### Dogfooding Development Approach
 - Build Project Maestro using the same collaborative principles we want to enable for users
