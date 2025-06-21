@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url'
 import { isDev } from './utils'
 import { MemoryIPCHandlers } from './services/memory/MemoryIPCHandlers'
 import { ChatIPCHandlers } from './services/chat/ChatIPCHandlers'
+import { CoreIPCHandlers } from './services/ipc/CoreIPCHandlers'
 import { createAgentOrchestrator } from './services/agents/AgentOrchestrator'
 import { EventBus } from './services/core/EventBus'
 
@@ -25,6 +26,7 @@ const __dirname = dirname(__filename)
 let mainWindow: BrowserWindow | null = null
 let memoryIPCHandlers: MemoryIPCHandlers | null = null
 let chatIPCHandlers: ChatIPCHandlers | null = null
+let coreIPCHandlers: CoreIPCHandlers | null = null
 let agentOrchestrator: any | null = null
 let eventBus: EventBus | null = null
 
@@ -128,6 +130,12 @@ const initializeServices = async (): Promise<void> => {
     eventBus = EventBus.getInstance()
     console.log('Event Bus initialized successfully')
     
+    // Initialize Core IPC Handlers (App, Project, Agent, UI)
+    console.log('Initializing Core IPC Handlers...')
+    coreIPCHandlers = new CoreIPCHandlers()
+    await coreIPCHandlers.initialize()
+    console.log('Core IPC Handlers initialized successfully')
+    
     // Initialize Memory System
     console.log('Initializing Memory System...')
     memoryIPCHandlers = new MemoryIPCHandlers()
@@ -190,6 +198,12 @@ const cleanupServices = async (): Promise<void> => {
       memoryIPCHandlers = null
     }
     
+    // Cleanup Core IPC Handlers
+    if (coreIPCHandlers) {
+      coreIPCHandlers.cleanup()
+      coreIPCHandlers = null
+    }
+    
     // Cleanup Event Bus
     if (eventBus) {
       eventBus.clear()
@@ -205,28 +219,8 @@ const cleanupServices = async (): Promise<void> => {
 }
 
 // =============================================================================
-// Basic IPC Handlers
+// IPC Handlers now managed by CoreIPCHandlers
 // =============================================================================
-
-// Health check
-ipcMain.handle('app:health', async () => {
-  return {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: app.getVersion()
-  }
-})
-
-// Get app info
-ipcMain.handle('app:info', async () => {
-  return {
-    name: app.getName(),
-    version: app.getVersion(),
-    electronVersion: process.versions.electron,
-    nodeVersion: process.versions.node,
-    platform: process.platform
-  }
-})
 
 // =============================================================================
 // Error Handling

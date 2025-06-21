@@ -6,7 +6,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '@/renderer/utils/cn'
-import { ChatMessage, TypingIndicator as TypingIndicatorType, useChatStore, useHistoryState } from '@/renderer/stores/chatStore'
+import { ChatMessage, TypingIndicator as TypingIndicatorType, useChatStore, useIsLoadingHistory, useHasMoreHistory, useTotalMessageCount } from '@/renderer/stores/chatStore'
 import { AgentType } from '@/shared/contracts/AgentDomain'
 import { AgentAvatar, TypingIndicator } from './AgentAvatar'
 
@@ -243,7 +243,9 @@ export const MessageList: React.FC<MessageListProps> = ({
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
   
   // Get history state and actions from store
-  const { isLoadingHistory, hasMoreHistory, totalMessageCount } = useHistoryState()
+  const isLoadingHistory = useIsLoadingHistory()
+  const hasMoreHistory = useHasMoreHistory()
+  const totalMessageCount = useTotalMessageCount()
   const loadMoreMessages = useChatStore(state => state.loadMoreMessages)
   
   // Handle infinite scroll for loading older messages

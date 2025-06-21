@@ -544,11 +544,9 @@ export const useActiveThread = () => useChatStore(state => state.activeThread)
 export const useTypingIndicators = () => useChatStore(state => state.typingIndicators)
 export const useConversationContext = () => useChatStore(state => state.conversationContext)
 export const useThreads = () => useChatStore(state => state.threads)
-export const useHistoryState = () => useChatStore(state => ({
-  isLoadingHistory: state.isLoadingHistory,
-  hasMoreHistory: state.hasMoreHistory,
-  totalMessageCount: state.totalMessageCount
-}))
+export const useIsLoadingHistory = () => useChatStore(state => state.isLoadingHistory)
+export const useHasMoreHistory = () => useChatStore(state => state.hasMoreHistory)
+export const useTotalMessageCount = () => useChatStore(state => state.totalMessageCount)
 
 // =============================================================================
 // Auto-save Chat History
